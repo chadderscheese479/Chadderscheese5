@@ -1,0 +1,2725 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- Mobile-first viewport configured to feel like a native app and prevent accidental double-tap zoom -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Chadder’s">
+<meta name="theme-color" content="#1C1917">
+<link id="apple-touch-icon-link" rel="apple-touch-icon" sizes="180x180" href="">
+<link id="favicon-link" rel="icon" type="image/png" href="">
+<link id="manifest-link" rel="manifest" href="">
+<title>Chadder’s Cheese — Smokehouse Inventory & Sales</title>
+
+<!-- Google Fonts: Fraunces for artisanal warmth + Plus Jakarta Sans for crisp mobile readability -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+theme: {
+extend: {
+fontFamily: {
+sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+serif: ['"Fraunces"', 'serif'],
+},
+colors: {
+parchment: {
+50: '#FDFBF7',
+100: '#F7F2E7',
+200: '#EDE3D0',
+300: '#DFD0B4',
+},
+cheddar: {
+400: '#FBBF24',
+500: '#F59E0B',
+600: '#D97706',
+700: '#B45309',
+800: '#92400E',
+},
+smokehouse: {
+800: '#292524',
+900: '#1C1917',
+950: '#12100E',
+}
+}
+}
+}
+}
+</script>
+<style>
+/* Custom styles for tactile native-like mobile feel */
+* {
+-webkit-tap-highlight-color: transparent;
+touch-action: manipulation;
+}
+body {
+background-color: #F7F2E7;
+color: #1C1917;
+overscroll-behavior-y: contain;
+}
+/* Hide scrollbars on horizontal quick-pick chips while preserving scroll */
+.no-scrollbar::-webkit-scrollbar {
+display: none;
+}
+.no-scrollbar {
+-ms-overflow-style: none;
+scrollbar-width: none;
+}
+/* Subtle smoke wisp animation for header emblem */
+@keyframes floatSmoke {
+0%, 100% { transform: translateY(0px) scale(1); opacity: 0.85; }
+50% { transform: translateY(-2px) scale(1.04); opacity: 1; }
+}
+.smoke-animate {
+animation: floatSmoke 4s ease-in-out infinite;
+}
+</style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-cheddar-500 selection:text-white">
+
+<!-- =====================================================================
+STICKY TOP HEADER (Artisanal Smokehouse Branding & Live KPIs)
+===================================================================== -->
+<header class="sticky top-0 z-30 bg-smokehouse-900 text-parchment-50 shadow-lg border-b border-smokehouse-800">
+<div class="max-w-lg mx-auto px-4 pt-3 pb-3">
+<!-- Top Row: Brand Emblem + Settings Button -->
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2.5">
+<!-- Custom Artisanal Smoked Cheese Wedge SVG Emblem -->
+<div id="header-brand-badge" class="w-10 h-10 rounded-xl bg-gradient-to-br from-cheddar-500 to-cheddar-700 flex items-center justify-center shadow-inner border border-cheddar-400/30 shrink-0 overflow-hidden">
+<svg id="header-default-emblem" class="w-6 h-6 text-smokehouse-950 smoke-animate" viewBox="0 0 24 24" fill="currentColor">
+<!-- Cheese wedge with holes and rising smoke wisp -->
+<path d="M12 2c-.4 1.1.3 1.9.7 2.8.4.9.2 1.8-.4 2.5M15.5 2.5c-.3.9.2 1.6.5 2.3.3.7.2 1.4-.3 2" stroke="#1C1917" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+<path d="M3 13.5L13.5 8c3.2 1.1 5.8 3.2 7.5 5.5v6.5c0 .8-.7 1.5-1.5 1.5h-15c-.8 0-1.5-.7-1.5-1.5v-6.5z"/>
+<circle cx="8.5" cy="16.5" r="1.3" fill="#D97706"/>
+<circle cx="14.5" cy="15.5" r="1.6" fill="#D97706"/>
+<circle cx="12" cy="18.8" r="1" fill="#D97706"/>
+</svg>
+<img id="header-custom-photo" src="" alt="Custom Smokehouse Icon" class="hidden w-full h-full object-cover">
+</div>
+<div>
+<h1 class="font-serif text-xl font-bold tracking-tight text-parchment-50 leading-none">
+Chadder’s Cheese
+</h1>
+<div class="flex items-center gap-1.5 mt-1">
+<p class="text-[11px] uppercase tracking-widest text-cheddar-400 font-semibold">
+Small-Batch Smokehouse
+</p>
+<span id="save-status-badge" class="text-[10px] font-semibold text-emerald-300/90 bg-emerald-950/70 px-1.5 py-0.2 rounded">
+Saved
+</span>
+</div>
+</div>
+</div>
+
+<!-- Data & Settings Trigger Button -->
+<button onclick="openSettingsModal()" aria-label="Data & Backup Settings"
+class="p-2.5 rounded-xl bg-smokehouse-800 hover:bg-stone-700 active:scale-95 transition text-parchment-200 border border-stone-700/70">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+</svg>
+</button>
+</div>
+
+<!-- Live Summary Metrics Strip (3 Pill Cards) -->
+<div class="grid grid-cols-3 gap-2">
+<div class="bg-smokehouse-800/90 rounded-xl px-2.5 py-2 border border-stone-700/60">
+<span class="block text-[10px] uppercase tracking-wider text-stone-400 font-semibold">Net Profit</span>
+<span id="kpi-profit" class="font-serif text-base sm:text-lg font-bold text-emerald-400">$0.00</span>
+</div>
+<div class="bg-smokehouse-800/90 rounded-xl px-2.5 py-2 border border-stone-700/60">
+<span class="block text-[10px] uppercase tracking-wider text-stone-400 font-semibold">In Stock</span>
+<span id="kpi-stock" class="font-serif text-base sm:text-lg font-bold text-cheddar-400">0 blks</span>
+</div>
+<button onclick="switchTab('history', 'unpaid')" class="text-left bg-smokehouse-800/90 hover:bg-stone-800 rounded-xl px-2.5 py-2 border border-stone-700/60 transition active:scale-95">
+<span class="block text-[10px] uppercase tracking-wider text-stone-400 font-semibold">Open Tabs</span>
+<span id="kpi-tabs" class="font-serif text-base sm:text-lg font-bold text-amber-300">$0.00</span>
+</button>
+</div>
+</div>
+</header>
+
+<!-- =====================================================================
+MAIN CONTENT VIEWPORT (Padded bottom for sticky mobile nav bar)
+===================================================================== -->
+<main class="flex-1 max-w-lg w-full mx-auto px-4 pt-4 pb-28">
+
+<!-- =================================================================
+TAB 1: INVENTORY (Smoke Batches & Stock)
+================================================================= -->
+<section id="tab-inventory" class="space-y-4">
+<!-- Section Header + Add Batch CTA -->
+<div class="flex items-center justify-between">
+<div>
+<h2 class="font-serif text-xl font-bold text-smokehouse-900">Smokehouse Stock</h2>
+<p class="text-xs text-stone-600">Tap + / − to adjust cured blocks on hand</p>
+</div>
+<button onclick="openBatchModal()"
+class="inline-flex items-center gap-1.5 bg-cheddar-600 hover:bg-cheddar-700 active:scale-95 text-white font-semibold text-sm px-4 py-2.5 rounded-xl shadow-md transition">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+</svg>
+<span>Add Batch</span>
+</button>
+</div>
+
+<!-- Filter Pills for Stock Status -->
+<div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+<button onclick="setInventoryFilter('all')" id="inv-filter-all"
+class="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-smokehouse-900 text-parchment-50 transition">
+All Varieties
+</button>
+<button onclick="setInventoryFilter('low')" id="inv-filter-low"
+class="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-parchment-200 text-stone-700 hover:bg-parchment-300 transition">
+Low / Out of Stock
+</button>
+</div>
+
+<!-- Inventory Cards Container -->
+<div id="inventory-list" class="space-y-3">
+<!-- Populated dynamically via JS -->
+</div>
+</section>
+
+<!-- =================================================================
+TAB 2: QUICK SALE (Record a Sale to Friends & Family)
+================================================================= -->
+<section id="tab-sale" class="hidden space-y-4">
+<div>
+<h2 class="font-serif text-xl font-bold text-smokehouse-900">Record a Sale</h2>
+<p class="text-xs text-stone-600">Fast checkout for friends, family & neighbors</p>
+</div>
+
+<!-- Step 1: Buyer Selection -->
+<div class="bg-parchment-50 rounded-2xl p-4 shadow-sm border border-parchment-300/80 space-y-3">
+<label for="buyer-name" class="block text-xs font-bold uppercase tracking-wider text-stone-500">
+1. Who's Buying?
+</label>
+<div class="relative">
+<input type="text" id="buyer-name" placeholder="Enter friend or family name..."
+class="w-full rounded-xl bg-white border border-parchment-300 px-3.5 py-3 text-base font-medium text-smokehouse-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-cheddar-500 focus:border-cheddar-500">
+<button type="button" onclick="document.getElementById('buyer-name').value=''; document.getElementById('buyer-name').focus();"
+class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 p-1 text-xs font-semibold">
+Clear
+</button>
+</div>
+
+<!-- Repeat Buyer Quick-Pick Chips -->
+<div>
+<span class="block text-[11px] font-medium text-stone-500 mb-1.5">Quick Pick Regulars:</span>
+<div id="quick-buyers-list" class="flex flex-wrap gap-1.5">
+<!-- Populated dynamically from saved buyers -->
+</div>
+</div>
+</div>
+
+<!-- Step 2: Select Cheese Blocks -->
+<div class="bg-parchment-50 rounded-2xl p-4 shadow-sm border border-parchment-300/80 space-y-3">
+<div class="flex items-center justify-between">
+<label class="block text-xs font-bold uppercase tracking-wider text-stone-500">
+2. Select Smoked Cheese
+</label>
+<span id="cart-item-count" class="text-xs font-semibold text-cheddar-700 bg-cheddar-500/15 px-2.5 py-0.5 rounded-full">
+0 blocks selected
+</span>
+</div>
+
+<!-- In-Stock Cheese Picker List -->
+<div id="sale-cheese-picker" class="space-y-2.5">
+<!-- Populated dynamically with available batches & +/- steppers -->
+</div>
+</div>
+
+<!-- Step 3: Payment Status & Note -->
+<div class="bg-parchment-50 rounded-2xl p-4 shadow-sm border border-parchment-300/80 space-y-3.5">
+<label class="block text-xs font-bold uppercase tracking-wider text-stone-500">
+3. Payment & Delivery Note
+</label>
+
+<!-- Paid vs Unpaid Tab Toggle -->
+<div class="grid grid-cols-2 gap-2 p-1 bg-parchment-200/80 rounded-xl">
+<button type="button" id="btn-status-paid" onclick="setPaymentStatus('paid')"
+class="py-2.5 px-3 rounded-lg text-sm font-bold flex items-center justify-center gap-1.5 bg-emerald-700 text-white shadow-sm transition">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+</svg>
+<span>Paid Now</span>
+</button>
+<button type="button" id="btn-status-unpaid" onclick="setPaymentStatus('unpaid')"
+class="py-2.5 px-3 rounded-lg text-sm font-bold flex items-center justify-center gap-1.5 text-stone-700 hover:bg-parchment-300/60 transition">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+</svg>
+<span>Unpaid / Tab</span>
+</button>
+</div>
+
+<!-- Payment Method Chips (Shown only when Paid Now is active) -->
+<div id="payment-method-container" class="space-y-1.5">
+<span class="block text-[11px] font-medium text-stone-500">Payment Method:</span>
+<div class="grid grid-cols-4 gap-1.5">
+<button type="button" onclick="setPaymentMethod('Venmo')" data-method="Venmo"
+class="pay-method-btn py-2 rounded-xl text-xs font-bold border border-cheddar-600 bg-cheddar-500/15 text-cheddar-800 transition">
+Venmo
+</button>
+<button type="button" onclick="setPaymentMethod('Cash')" data-method="Cash"
+class="pay-method-btn py-2 rounded-xl text-xs font-semibold border border-parchment-300 bg-white text-stone-700 transition">
+Cash
+</button>
+<button type="button" onclick="setPaymentMethod('Zelle')" data-method="Zelle"
+class="pay-method-btn py-2 rounded-xl text-xs font-semibold border border-parchment-300 bg-white text-stone-700 transition">
+Zelle
+</button>
+<button type="button" onclick="setPaymentMethod('Other')" data-method="Other"
+class="pay-method-btn py-2 rounded-xl text-xs font-semibold border border-parchment-300 bg-white text-stone-700 transition">
+Other
+</button>
+</div>
+</div>
+
+<!-- Optional Note -->
+<div>
+<input type="text" id="sale-note" placeholder="Optional note (e.g., Dropping off Sunday, extra sharp)..."
+class="w-full rounded-xl bg-white border border-parchment-300 px-3.5 py-2.5 text-sm text-smokehouse-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-cheddar-500">
+</div>
+</div>
+
+<!-- Order Summary & Complete Sale CTA -->
+<div class="bg-smokehouse-900 text-parchment-50 rounded-2xl p-4 shadow-lg border border-smokehouse-800 space-y-3">
+<div class="flex items-center justify-between">
+<div>
+<span class="block text-xs text-stone-400 uppercase tracking-wider font-semibold">Order Total</span>
+<span id="sale-total-display" class="font-serif text-2xl font-bold text-cheddar-400">$0.00</span>
+</div>
+<div class="text-right">
+<span class="block text-[10px] text-stone-400 uppercase tracking-wider font-semibold">Est. Profit</span>
+<span id="sale-profit-display" class="font-serif text-lg font-bold text-emerald-400">+$0.00</span>
+</div>
+</div>
+<div id="sale-summary-pill" class="text-xs text-stone-300 border-t border-smokehouse-800 pt-2 flex items-center justify-between">
+<span>Select items above</span>
+<span id="sale-margin-pill" class="text-emerald-400 font-semibold"></span>
+</div>
+
+<button type="button" onclick="completeSale()"
+class="w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-cheddar-500 to-cheddar-600 hover:from-cheddar-600 hover:to-cheddar-700 active:scale-[0.99] text-smokehouse-950 font-extrabold text-base shadow-md transition flex items-center justify-center gap-2">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+</svg>
+<span>Complete Sale & Update Stock</span>
+</button>
+</div>
+</section>
+
+<!-- =================================================================
+TAB 3: SALES & TABS HISTORY
+================================================================= -->
+<section id="tab-history" class="hidden space-y-4">
+<div>
+<h2 class="font-serif text-xl font-bold text-smokehouse-900">Sales & Open Tabs</h2>
+<p class="text-xs text-stone-600">Track paid orders & settle friends/family tabs</p>
+</div>
+
+<!-- Filter Tabs (All / Unpaid Tabs / Paid) -->
+<div class="grid grid-cols-3 gap-1.5 bg-parchment-200/80 p-1 rounded-xl">
+<button onclick="setHistoryFilter('all')" id="hist-filter-all"
+class="py-2 rounded-lg text-xs font-bold bg-smokehouse-900 text-parchment-50 shadow-sm transition">
+All Orders
+</button>
+<button onclick="setHistoryFilter('unpaid')" id="hist-filter-unpaid"
+class="py-2 rounded-lg text-xs font-bold text-stone-700 hover:bg-parchment-300/50 transition flex items-center justify-center gap-1">
+<span>Unpaid Tabs</span>
+<span id="unpaid-count-badge" class="hidden px-1.5 py-0.2 bg-amber-600 text-white text-[10px] rounded-full">0</span>
+</button>
+<button onclick="setHistoryFilter('paid')" id="hist-filter-paid"
+class="py-2 rounded-lg text-xs font-bold text-stone-700 hover:bg-parchment-300/50 transition">
+Paid
+</button>
+</div>
+
+<!-- Sales History List -->
+<div id="sales-history-list" class="space-y-3">
+<!-- Populated dynamically via JS -->
+</div>
+</section>
+
+<!-- =================================================================
+TAB 4: PROFITS, COGS & SMOKEHOUSE EXPENSES
+================================================================= -->
+<section id="tab-profits" class="hidden space-y-4">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="font-serif text-xl font-bold text-smokehouse-900">Profits & Ledger</h2>
+<p class="text-xs text-stone-600">Revenue, COGS, supplies & true net profit</p>
+</div>
+<button onclick="openExpenseModal()"
+class="inline-flex items-center gap-1.5 bg-smokehouse-900 hover:bg-stone-800 active:scale-95 text-cheddar-400 font-semibold text-xs px-3.5 py-2.5 rounded-xl shadow-md transition">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+</svg>
+<span>Log Expense</span>
+</button>
+</div>
+
+<!-- Timeframe Filter Pills -->
+<div class="grid grid-cols-3 gap-1.5 bg-parchment-200/80 p-1 rounded-xl">
+<button onclick="setProfitTimeframe('all')" id="prof-tf-all"
+class="py-2 rounded-lg text-xs font-bold bg-smokehouse-900 text-parchment-50 shadow-sm transition">
+All Time
+</button>
+<button onclick="setProfitTimeframe('month')" id="prof-tf-month"
+class="py-2 rounded-lg text-xs font-bold text-stone-700 hover:bg-parchment-300/50 transition">
+This Month
+</button>
+<button onclick="setProfitTimeframe('30days')" id="prof-tf-30days"
+class="py-2 rounded-lg text-xs font-bold text-stone-700 hover:bg-parchment-300/50 transition">
+Last 30 Days
+</button>
+</div>
+
+<!-- Hero Net Profit Card -->
+<div class="bg-smokehouse-900 text-parchment-50 rounded-2xl p-4 shadow-lg border border-smokehouse-800 space-y-3">
+<div class="flex items-start justify-between">
+<div>
+<span class="block text-[11px] uppercase tracking-wider text-stone-400 font-bold">True Net Profit</span>
+<span id="prof-net-profit" class="font-serif text-3xl font-bold text-emerald-400">$0.00</span>
+</div>
+<span id="prof-net-margin" class="px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+0% margin
+</span>
+</div>
+
+<!-- 3-Column Financial Breakdown -->
+<div class="grid grid-cols-3 gap-2 pt-3 border-t border-smokehouse-800 text-left">
+<div>
+<span class="block text-[10px] uppercase tracking-wider text-stone-400 font-semibold">Gross Sales</span>
+<span id="prof-gross-rev" class="font-serif text-sm font-bold text-parchment-50">$0.00</span>
+<span id="prof-rev-split" class="block text-[10px] text-stone-400 mt-0.5">$0 paid / $0 tab</span>
+</div>
+<div>
+<span class="block text-[10px] uppercase tracking-wider text-stone-400 font-semibold">Block COGS</span>
+<span id="prof-total-cogs" class="font-serif text-sm font-bold text-cheddar-400">−$0.00</span>
+<span id="prof-blocks-count" class="block text-[10px] text-stone-400 mt-0.5">0 blocks sold</span>
+</div>
+<div>
+<span class="block text-[10px] uppercase tracking-wider text-stone-400 font-semibold">Supplies</span>
+<span id="prof-total-expenses" class="font-serif text-sm font-bold text-rose-400">−$0.00</span>
+<span id="prof-expenses-count" class="block text-[10px] text-stone-400 mt-0.5">0 entries</span>
+</div>
+</div>
+</div>
+
+<!-- Profit by Cheese Variety Breakdown -->
+<div class="bg-parchment-50 rounded-2xl p-4 shadow-sm border border-parchment-300/90 space-y-3">
+<div class="flex items-center justify-between">
+<h3 class="font-serif text-base font-bold text-smokehouse-900">Profit by Cheese Variety</h3>
+<span class="text-[11px] font-semibold text-stone-500">Gross Profit & Margin</span>
+</div>
+<div id="profit-by-cheese-list" class="space-y-3">
+<!-- Populated dynamically -->
+</div>
+</div>
+
+<!-- Smokehouse Expenses & Supplies Log -->
+<div class="bg-parchment-50 rounded-2xl p-4 shadow-sm border border-parchment-300/90 space-y-3">
+<div class="flex items-center justify-between">
+<div>
+<h3 class="font-serif text-base font-bold text-smokehouse-900">Supplies & Overhead Log</h3>
+<p class="text-[11px] text-stone-500">Wood pellets, vacuum bags, wax paper & gear</p>
+</div>
+<button onclick="openExpenseModal()" class="text-xs font-bold text-cheddar-700 hover:text-cheddar-800 underline underline-offset-2">
++ Add
+</button>
+</div>
+<div id="expenses-list" class="space-y-2">
+<!-- Populated dynamically -->
+</div>
+</div>
+</section>
+
+</main>
+
+<!-- =====================================================================
+BOTTOM THUMB-FRIENDLY NAVIGATION BAR (4 Tabs)
+===================================================================== -->
+<nav class="fixed bottom-0 inset-x-0 z-30 bg-smokehouse-900/95 backdrop-blur-md border-t border-smokehouse-800 pb-safe">
+<div class="max-w-lg mx-auto grid grid-cols-4 h-18">
+<!-- Nav 1: Inventory -->
+<button onclick="switchTab('inventory')" id="nav-inventory"
+class="flex flex-col items-center justify-center py-2.5 text-cheddar-400 transition active:scale-95">
+<svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+</svg>
+<span class="text-[10px] font-bold tracking-wide">Inventory</span>
+</button>
+
+<!-- Nav 2: Quick Sale -->
+<button onclick="switchTab('sale')" id="nav-sale"
+class="flex flex-col items-center justify-center py-2.5 text-stone-400 hover:text-parchment-100 transition active:scale-95 relative">
+<div id="nav-sale-pill" class="w-10 h-6 rounded-full flex items-center justify-center mb-0.5 transition">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+</svg>
+</div>
+<span class="text-[10px] font-bold tracking-wide">Quick Sale</span>
+</button>
+
+<!-- Nav 3: Sales & Tabs -->
+<button onclick="switchTab('history')" id="nav-history"
+class="flex flex-col items-center justify-center py-2.5 text-stone-400 hover:text-parchment-100 transition active:scale-95 relative">
+<div class="relative">
+<svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+</svg>
+<span id="nav-tab-dot" class="hidden absolute -top-0.5 -right-1.5 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-smokehouse-900"></span>
+</div>
+<span class="text-[10px] font-bold tracking-wide">Sales & Tabs</span>
+</button>
+
+<!-- Nav 4: Profits -->
+<button onclick="switchTab('profits')" id="nav-profits"
+class="flex flex-col items-center justify-center py-2.5 text-stone-400 hover:text-parchment-100 transition active:scale-95">
+<svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+</svg>
+<span class="text-[10px] font-bold tracking-wide">Profits</span>
+</button>
+</div>
+</nav>
+
+<!-- =====================================================================
+MODAL 1: ADD / EDIT SMOKE BATCH MODAL
+===================================================================== -->
+<div id="batch-modal" class="fixed inset-0 z-50 hidden bg-smokehouse-950/75 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+<div class="bg-parchment-50 w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-parchment-300 overflow-hidden max-h-[92vh] flex flex-col">
+<!-- Modal Header -->
+<div class="px-5 py-4 bg-smokehouse-900 text-parchment-50 flex items-center justify-between">
+<h3 id="batch-modal-title" class="font-serif text-lg font-bold">Add Smoke Batch</h3>
+<button onclick="closeBatchModal()" class="p-1.5 rounded-lg text-stone-400 hover:text-white">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+</svg>
+</button>
+</div>
+
+<!-- Modal Form Body -->
+<form id="batch-form" novalidate onsubmit="saveBatch(event); return false;" class="p-5 space-y-4 overflow-y-auto">
+<input type="hidden" id="batch-id">
+
+<div>
+<label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Cheese Variety *</label>
+<input type="text" id="batch-variety" placeholder="e.g., Sharp White Cheddar"
+class="w-full rounded-xl bg-white border border-parchment-300 px-3.5 py-2.5 text-sm font-medium text-smokehouse-900 focus:outline-none focus:ring-2 focus:ring-cheddar-500">
+</div>
+
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Smoke Wood *</label>
+<select id="batch-wood" class="w-full rounded-xl bg-white border border-parchment-300 px-3 py-2.5 text-sm font-medium text-smokehouse-900 focus:outline-none focus:ring-2 focus:ring-cheddar-500">
+<option value="Hickory">Hickory</option>
+<option value="Applewood">Applewood</option>
+<option value="Pecan">Pecan</option>
+<option value="Cherrywood">Cherrywood</option>
+<option value="Mesquite">Mesquite</option>
+<option value="Oak">Post Oak</option>
+<option value="Maple">Sugar Maple</option>
+<option value="Alder">Alder</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Block Weight / Size</label>
+<input type="text" id="batch-weight" value="8 oz block" placeholder="e.g., 8 oz block"
+class="w-full rounded-xl bg-white border border-parchment-300 px-3.5 py-2.5 text-sm font-medium text-smokehouse-900 focus:outline-none focus:ring-2 focus:ring-cheddar-500">
+</div>
+</div>
+
+<div class="grid grid-cols-3 gap-3">
+<div>
+<label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Blocks Qty *</label>
+<input type="number" id="batch-stock" min="0" step="1" placeholder="10"
+class="w-full rounded-xl bg-white border border-parchment-300 px-3 py-2.5 text-sm font-bold text-smokehouse-900 focus:outline-none focus:ring-2 focus:ring-cheddar-500">
+</div>
+<div>
+<label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Sell Price ($) *</label>
+<input type="number" id="batch-price" min="0" step="0.01" inputmode="decimal" placeholder="8.00"
+class="w-full rounded-xl bg-white border border-parchment-300 px-3 py-2.5 text-sm font-bold text-emerald-800 focus:outline-none focus:ring-2 focus:ring-cheddar-500">
+</div>
+<div>
+<label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Make Cost ($) *</label>
+<input type="number" id="batch-cost" min="0" step="0.01" inputmode="decimal" placeholder="1.78"
+class="w-full rounded-xl bg-white border border-parchment-300 px-3 py-2.5 text-sm font-medium text-stone-700 focus:outline-none focus:ring-2 focus:ring-cheddar-500">
+</div>
+</div>
+
+<div>
+<label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Smoke / Batch Date</label>
+<input type="date" id="batch-date"
+class="w-full rounded-xl bg-white border border-parchment-300 px-3.5 py-2.5 text-sm font-medium text-smokehouse-900 focus:outline-none focus:ring-2 focus:ring-cheddar-500">
+</div>
+
+<div class="pt-2 flex items-center gap-2.5">
+<button type="button" id="btn-delete-batch" onclick="deleteCurrentBatch()"
+class="hidden px-4 py-3 rounded-xl bg-red-100 hover:bg-red-200 text-red-700 font-bold text-sm transition">
+Delete
+</button>
+<button type="button" onclick="saveBatch(event)"
+class="flex-1 py-3 px-5 rounded-xl bg-cheddar-600 hover:bg-cheddar-700 text-white font-bold text-sm shadow-md transition">
+Save Batch
+</button>
+</div>
+</form>
+</div>
+</div>
+
+<!-- =====================================================================
+MODAL 2B: LOG SMOKEHOUSE EXPENSE / SUPPLIES MODAL
+===================================================================== -->
+<div id="expense-modal" class="fixed inset-0 z-50 hidden bg-smokehouse-950/75 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+<div class="bg-parchment-50 w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-parchment-300 overflow-hidden">
+<div class="px-5 py-4 bg-smokehouse-900 text-parchment-50 flex items-center justify-between">
+<h3 class="font-serif text-lg font-bold">Log Smokehouse Expense</h3>
+<button onclick="closeExpenseModal()" class="p-1.5 rounded-lg text-stone-400 hover:text-white">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+</svg>
+</button>
+</div>
+<form novalidate onsubmit="saveExpense(event); return false;" class="p-5 space-y-4">
+<div>
+<label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Description *</label>
+<input type="text" id="exp-desc" placeholder="e.g., 20lb Hickory Wood Pellets"
+class="w-full rounded-xl bg-white border border-parchment-300 px-3.5 py-2.5 text-sm font-medium text-smokehouse-900 focus:outline-none focus:ring-2 focus:ring-cheddar-500">
+</div>
+
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Category *</label>
+<select id="exp-category" class="w-full rounded-xl bg-white border border-parchment-300 px-3 py-2.5 text-sm font-medium text-smokehouse-900 focus:outline-none focus:ring-2 focus:ring-cheddar-500">
+<option value="Wood/Fuel">Wood / Fuel</option>
+<option value="Packaging">Packaging</option>
+<option value="Supplies">Supplies</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Amount ($) *</label>
+<input type="number" id="exp-amount" min="0.01" step="0.01" inputmode="decimal" placeholder="14.99"
+class="w-full rounded-xl bg-white border border-parchment-300 px-3 py-2.5 text-sm font-bold text-rose-700 focus:outline-none focus:ring-2 focus:ring-cheddar-500">
+</div>
+</div>
+
+<div>
+<label class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Date</label>
+<input type="date" id="exp-date"
+class="w-full rounded-xl bg-white border border-parchment-300 px-3.5 py-2.5 text-sm font-medium text-smokehouse-900 focus:outline-none focus:ring-2 focus:ring-cheddar-500">
+</div>
+
+<button type="button" onclick="saveExpense(event)"
+class="w-full py-3 px-5 rounded-xl bg-smokehouse-900 hover:bg-stone-800 text-cheddar-400 font-bold text-sm shadow-md transition">
+Save Expense
+</button>
+</form>
+</div>
+</div>
+
+<!-- =====================================================================
+MODAL 3: DATA BACKUP, EXPORT CSV & DEMO RESET MODAL
+===================================================================== -->
+<div id="settings-modal" class="fixed inset-0 z-50 hidden bg-smokehouse-950/75 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+<div class="bg-parchment-50 w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-parchment-300 overflow-hidden max-h-[92vh] flex flex-col">
+<div class="px-5 py-4 bg-smokehouse-900 text-parchment-50 flex items-center justify-between">
+<h3 class="font-serif text-lg font-bold">Smokehouse Data & Backup</h3>
+<button onclick="closeSettingsModal()" class="p-1.5 rounded-lg text-stone-400 hover:text-white">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+</svg>
+</button>
+</div>
+<div class="p-5 space-y-3.5 overflow-y-auto">
+<!-- Preview Sandbox Persistence Explanation + Backup/Restore Controls -->
+<div class="bg-white rounded-2xl p-3.5 border border-parchment-300 space-y-2.5">
+<div class="flex items-center justify-between">
+<span class="text-xs font-bold uppercase tracking-wider text-smokehouse-900">Save & Restore Snapshot</span>
+<span id="storage-mode-pill" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900">
+Preview Mode
+</span>
+</div>
+<p class="text-[11px] text-stone-600 leading-relaxed">
+Your edits save automatically during your session. If you refresh inside Gemini’s preview frame, the frame resets to the starter template unless you download a backup file or host the HTML file on its own URL.
+</p>
+<div class="grid grid-cols-2 gap-2">
+<button type="button" onclick="downloadBackupJSON()"
+class="py-2.5 px-3 rounded-xl bg-cheddar-600 hover:bg-cheddar-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition">
+<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+</svg>
+<span>Download Backup</span>
+</button>
+<label class="cursor-pointer py-2.5 px-3 rounded-xl bg-smokehouse-900 hover:bg-stone-800 active:scale-95 text-cheddar-400 font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition">
+<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+</svg>
+<span>Restore Backup</span>
+<input type="file" id="restore-backup-input" accept=".json,application/json" onchange="handleRestoreBackup(event)" class="hidden">
+</label>
+</div>
+</div>
+
+<!-- Standalone Home Screen Info Box -->
+<div class="bg-amber-50 rounded-2xl p-3.5 border border-amber-300/90 space-y-1.5 text-[11px] text-amber-950 leading-relaxed">
+<p class="font-bold text-xs text-smokehouse-900">How to get permanent saving & your own Home Screen icon:</p>
+<p>
+Save this HTML file as <code>index.html</code> and host it on its own URL (such as GitHub Pages, Netlify Drop, or Vercel), open that direct link in Safari or Chrome, and tap <strong>Add to Home Screen</strong>.
+</p>
+</div>
+
+<!-- Custom Home Screen Photo Picker -->
+<div class="bg-white rounded-2xl p-3.5 border border-parchment-300 space-y-2.5">
+<div class="flex items-center justify-between gap-2">
+<div>
+<span class="block text-xs font-bold uppercase tracking-wider text-stone-600">Home Screen App Icon</span>
+<p class="text-[11px] text-stone-500">Pick a photo from your library for "Add to Home Screen"</p>
+</div>
+<span id="icon-active-status" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-parchment-200 text-stone-600">
+Default
+</span>
+</div>
+
+<div class="flex items-center gap-3">
+<div class="w-14 h-14 rounded-2xl overflow-hidden bg-smokehouse-900 border border-parchment-300 flex items-center justify-center shrink-0 shadow-sm">
+<img id="app-icon-preview" src="" alt="Home Screen Icon Preview" class="w-full h-full object-cover">
+</div>
+<div class="flex-1 flex flex-wrap gap-2">
+<label class="cursor-pointer inline-flex items-center justify-center px-3.5 py-2 rounded-xl bg-cheddar-600 hover:bg-cheddar-700 active:scale-95 text-white font-bold text-xs shadow-xs transition">
+<span>Choose Photo</span>
+<input type="file" id="icon-photo-input" accept="image/*" onchange="handleIconPhotoSelect(event)" class="hidden">
+</label>
+<button type="button" id="btn-download-icon" onclick="downloadIconPng()"
+class="px-3 py-2 rounded-xl bg-smokehouse-900 hover:bg-stone-800 text-cheddar-400 font-semibold text-xs transition">
+Save Icon Image
+</button>
+<button type="button" id="btn-reset-icon" onclick="resetCustomAppIcon()"
+class="px-3 py-2 rounded-xl bg-parchment-200 hover:bg-parchment-300 text-stone-700 font-semibold text-xs transition">
+Default Emblem
+</button>
+</div>
+</div>
+
+<div id="icon-environment-notice" class="p-2.5 rounded-xl bg-amber-50 border border-amber-200/90 text-[10px] text-amber-950 leading-relaxed space-y-1">
+<p class="font-bold">Why some browsers ignore "Choose Photo" on Add to Home Screen:</p>
+<p id="icon-env-detail">
+Many mobile browsers (especially iOS Safari when viewing preview frames, sandboxed iframes, or <code>file://</code> pages) ignore JavaScript-updated <code>apple-touch-icon</code> tags after load or take a page snapshot instead.
+</p>
+<p>
+<strong>Workaround:</strong> Tap <strong>Save Icon Image</strong> to save the square 180×180 photo to your Photos, add the page to your Home Screen, then long-press the Home Screen icon (on iOS/Android launchers that support custom icons) or use Shortcuts to set that saved photo.
+</p>
+</div>
+</div>
+
+<button onclick="exportSalesCSV()"
+class="w-full py-3 px-4 rounded-xl bg-smokehouse-900 hover:bg-stone-800 text-parchment-50 font-semibold text-sm flex items-center justify-between transition">
+<span>Export Profit & Sales Ledger (CSV)</span>
+<svg class="w-4 h-4 text-cheddar-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+</svg>
+</button>
+
+<button onclick="exportInventoryCSV()"
+class="w-full py-3 px-4 rounded-xl bg-parchment-200 hover:bg-parchment-300 text-smokehouse-900 font-semibold text-sm flex items-center justify-between transition">
+<span>Export Current Inventory (CSV)</span>
+<svg class="w-4 h-4 text-stone-700" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+</svg>
+</button>
+
+<div class="pt-3 border-t border-parchment-300 space-y-2">
+<span class="block text-[11px] font-bold uppercase tracking-wider text-stone-500">Danger Zone</span>
+<div class="grid grid-cols-2 gap-2">
+<button onclick="triggerConfirmAction('resetDemo')"
+class="py-2.5 px-3 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs transition">
+Reset Sample Data
+</button>
+<button onclick="triggerConfirmAction('clearAll')"
+class="py-2.5 px-3 rounded-xl bg-red-100 hover:bg-red-200 text-red-800 font-bold text-xs transition">
+Clear Sample Data
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- =====================================================================
+CUSTOM CONFIRMATION DIALOG (Replaces native alert/confirm)
+===================================================================== -->
+<div id="confirm-modal" class="fixed inset-0 z-50 hidden bg-smokehouse-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+<div class="bg-parchment-50 w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-parchment-300 space-y-4">
+<h4 id="confirm-title" class="font-serif text-lg font-bold text-smokehouse-900">Are you sure?</h4>
+<p id="confirm-message" class="text-sm text-stone-600 leading-relaxed"></p>
+<div id="confirm-extra" class="hidden"></div>
+<div class="flex items-center justify-end gap-2 pt-1">
+<button onclick="closeConfirmModal()" class="px-4 py-2.5 rounded-xl bg-parchment-200 text-stone-800 font-semibold text-sm">
+Cancel
+</button>
+<button id="confirm-proceed-btn" class="px-4 py-2.5 rounded-xl bg-red-600 text-white font-bold text-sm shadow">
+Confirm
+</button>
+</div>
+</div>
+</div>
+
+<!-- =====================================================================
+TOAST NOTIFICATION BANNER
+===================================================================== -->
+<div id="toast" class="fixed top-24 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 transform -translate-y-2">
+<div class="bg-smokehouse-900 text-parchment-50 px-4 py-2.5 rounded-full shadow-xl border border-cheddar-500/40 flex items-center gap-2 text-xs font-semibold whitespace-nowrap">
+<span class="w-2 h-2 rounded-full bg-cheddar-400"></span>
+<span id="toast-message">Saved!</span>
+</div>
+</div>
+
+<!-- =====================================================================
+APPLICATION LOGIC (State Management, LocalStorage, UI Rendering)
+===================================================================== -->
+<script>
+const STORAGE_KEY = 'chadders_cheese_v2';
+const CUSTOM_ICON_KEY = 'chadders_cheese_custom_icon_v1';
+const ICON_CACHE_NAME = 'chadders-cheese-icon-cache-v1';
+const ICON_VIRTUAL_PATH = './chadders-home-icon.png';
+const STATE_CACHE_NAME = 'chadders-cheese-state-cache-v1';
+const STATE_VIRTUAL_PATH = './chadders-cheese-state.json';
+const STATE_IDB_NAME = 'ChaddersCheeseIDB_v1';
+const STATE_IDB_STORE = 'stateStore';
+const STATE_IDB_KEY = 'currentState';
+const STATE_HASH_PREFIX = '#chadders_state=';
+const WINDOW_NAME_PREFIX = 'CHADDERS_CHEESE_STATE_V2:';
+let activeManifestUrl = null;
+let activeResolvedIconUrl = null;
+
+// Read/write helper for localStorage that safely handles restricted/sandboxed contexts
+function readStorageItem(key) {
+try {
+return window.localStorage.getItem(key);
+} catch (err) {
+return null;
+}
+}
+
+function writeStorageItem(key, value) {
+try {
+window.localStorage.setItem(key, value);
+return true;
+} catch (err) {
+return false;
+}
+}
+
+function removeStorageItem(key) {
+try {
+window.localStorage.removeItem(key);
+return true;
+} catch (err) {
+return false;
+}
+}
+
+// Secondary window.name fallback so edits survive reloads even if localStorage is wiped/sandboxed
+function readWindowNameState() {
+try {
+if (typeof window.name === 'string' && window.name.startsWith(WINDOW_NAME_PREFIX)) {
+const raw = window.name.slice(WINDOW_NAME_PREFIX.length);
+return JSON.parse(raw);
+}
+} catch (err) {
+// Ignore malformed window.name
+}
+return null;
+}
+
+function writeWindowNameState(serializedJson) {
+try {
+window.name = WINDOW_NAME_PREFIX + serializedJson;
+} catch (err) {
+// Ignore if window.name is restricted
+}
+}
+
+function clearWindowNameState() {
+try {
+if (typeof window.name === 'string' && window.name.startsWith(WINDOW_NAME_PREFIX)) {
+window.name = '';
+}
+} catch (err) {
+// Ignore
+}
+}
+
+// Secondary CacheStorage persistence for state across refreshes
+async function syncStateToBrowserCache(serializedJson) {
+if (!('caches' in window) || window.location.protocol === 'file:') {
+return;
+}
+try {
+const cache = await caches.open(STATE_CACHE_NAME);
+const response = new Response(serializedJson, {
+status: 200,
+headers: {
+'Content-Type': 'application/json',
+'Cache-Control': 'no-cache'
+}
+});
+await cache.put(STATE_VIRTUAL_PATH, response);
+} catch (err) {
+// Ignore cache errors in restricted environments
+}
+}
+
+async function readStateFromBrowserCache() {
+if (!('caches' in window) || window.location.protocol === 'file:') {
+return null;
+}
+try {
+const cache = await caches.open(STATE_CACHE_NAME);
+const resp = await cache.match(STATE_VIRTUAL_PATH);
+if (!resp) return null;
+return await resp.json();
+} catch (err) {
+return null;
+}
+}
+
+async function clearStateInBrowserCache() {
+if (!('caches' in window) || window.location.protocol === 'file:') {
+return;
+}
+try {
+await caches.delete(STATE_CACHE_NAME);
+} catch (err) {
+// Ignore
+}
+}
+
+// IndexedDB persistence so edits stay saved across reloads even when localStorage/CacheStorage is restricted
+function openStateIDB() {
+return new Promise((resolve) => {
+if (!('indexedDB' in window)) {
+resolve(null);
+return;
+}
+try {
+const req = indexedDB.open(STATE_IDB_NAME, 1);
+req.onupgradeneeded = () => {
+const db = req.result;
+if (!db.objectStoreNames.contains(STATE_IDB_STORE)) {
+db.createObjectStore(STATE_IDB_STORE);
+}
+};
+req.onsuccess = () => resolve(req.result);
+req.onerror = () => resolve(null);
+} catch (err) {
+resolve(null);
+}
+});
+}
+
+async function writeStateToIDB(serializedJson) {
+const db = await openStateIDB();
+if (!db) return false;
+return new Promise((resolve) => {
+try {
+const tx = db.transaction(STATE_IDB_STORE, 'readwrite');
+const store = tx.objectStore(STATE_IDB_STORE);
+store.put(serializedJson, STATE_IDB_KEY);
+tx.oncomplete = () => {
+db.close();
+resolve(true);
+};
+tx.onerror = () => {
+db.close();
+resolve(false);
+};
+} catch (err) {
+resolve(false);
+}
+});
+}
+
+async function readStateFromIDB() {
+const db = await openStateIDB();
+if (!db) return null;
+return new Promise((resolve) => {
+try {
+const tx = db.transaction(STATE_IDB_STORE, 'readonly');
+const store = tx.objectStore(STATE_IDB_STORE);
+const req = store.get(STATE_IDB_KEY);
+req.onsuccess = () => {
+const raw = req.result;
+db.close();
+if (!raw) {
+resolve(null);
+return;
+}
+try {
+resolve(JSON.parse(raw));
+} catch (err) {
+resolve(null);
+}
+};
+req.onerror = () => {
+db.close();
+resolve(null);
+};
+} catch (err) {
+resolve(null);
+}
+});
+}
+
+async function clearStateInIDB() {
+const db = await openStateIDB();
+if (!db) return;
+return new Promise((resolve) => {
+try {
+const tx = db.transaction(STATE_IDB_STORE, 'readwrite');
+tx.objectStore(STATE_IDB_STORE).delete(STATE_IDB_KEY);
+tx.oncomplete = () => {
+db.close();
+resolve();
+};
+tx.onerror = () => {
+db.close();
+resolve();
+};
+} catch (err) {
+resolve();
+}
+});
+}
+
+// URL hash fallback for sandboxes where frame storage resets on reload
+function writeStateToHash(serializedJson) {
+try {
+if (serializedJson.length > 180000) return;
+const encoded = encodeURIComponent(serializedJson);
+if (window.history && typeof window.history.replaceState === 'function') {
+window.history.replaceState(null, '', STATE_HASH_PREFIX + encoded);
+} else if (window.location.hash !== STATE_HASH_PREFIX + encoded) {
+window.location.hash = STATE_HASH_PREFIX + encoded;
+}
+} catch (err) {
+// Ignore if restricted
+}
+}
+
+function readStateFromHash() {
+try {
+const h = window.location.hash || '';
+if (!h.startsWith(STATE_HASH_PREFIX)) return null;
+const decoded = decodeURIComponent(h.slice(STATE_HASH_PREFIX.length));
+return JSON.parse(decoded);
+} catch (err) {
+return null;
+}
+}
+
+function clearStateInHash() {
+try {
+if ((window.location.hash || '').startsWith(STATE_HASH_PREFIX)) {
+if (window.history && typeof window.history.replaceState === 'function') {
+window.history.replaceState(null, '', window.location.pathname + window.location.search);
+} else {
+window.location.hash = '';
+}
+}
+} catch (err) {
+// Ignore
+}
+}
+
+// Generate a crisp 180x180 PNG data URL of the artisanal smoked cheese wedge emblem
+function generateDefaultIconDataUrl() {
+try {
+const size = 180;
+const canvas = document.createElement('canvas');
+canvas.width = size;
+canvas.height = size;
+const ctx = canvas.getContext('2d');
+
+// Warm smokehouse background
+ctx.fillStyle = '#1C1917';
+ctx.fillRect(0, 0, size, size);
+
+// Subtle golden border frame
+ctx.strokeStyle = 'rgba(251, 191, 36, 0.35)';
+ctx.lineWidth = 4;
+ctx.strokeRect(10, 10, size - 20, size - 20);
+
+// Rising smoke wisps
+ctx.strokeStyle = '#FBBF24';
+ctx.lineWidth = 6;
+ctx.lineCap = 'round';
+ctx.beginPath();
+ctx.moveTo(78, 34);
+ctx.quadraticCurveTo(70, 48, 82, 58);
+ctx.moveTo(106, 30);
+ctx.quadraticCurveTo(98, 44, 110, 54);
+ctx.stroke();
+
+// Cheddar wedge body
+const grad = ctx.createLinearGradient(32, 68, 148, 146);
+grad.addColorStop(0, '#FBBF24');
+grad.addColorStop(1, '#D97706');
+ctx.fillStyle = grad;
+
+ctx.beginPath();
+ctx.moveTo(32, 98);
+ctx.lineTo(102, 64);
+ctx.quadraticCurveTo(132, 74, 148, 98);
+ctx.lineTo(148, 140);
+ctx.quadraticCurveTo(148, 148, 140, 148);
+ctx.lineTo(40, 148);
+ctx.quadraticCurveTo(32, 148, 32, 140);
+ctx.closePath();
+ctx.fill();
+
+// Artisanal cheese holes
+ctx.fillStyle = '#92400E';
+ctx.beginPath();
+ctx.arc(68, 118, 9, 0, Math.PI * 2);
+ctx.arc(108, 112, 11, 0, Math.PI * 2);
+ctx.arc(90, 134, 7, 0, Math.PI * 2);
+ctx.fill();
+
+return canvas.toDataURL('image/png');
+} catch (err) {
+return '';
+}
+}
+
+// Sync icon into CacheStorage when supported, falling back cleanly to the data URL
+async function syncIconToBrowserCache(iconDataUrl) {
+if (!iconDataUrl) return '';
+if (!('caches' in window) || window.location.protocol === 'file:' || window.location.protocol === 'blob:') {
+return iconDataUrl;
+}
+try {
+const resp = await fetch(iconDataUrl);
+const blob = await resp.blob();
+const cache = await caches.open(ICON_CACHE_NAME);
+await cache.put(
+ICON_VIRTUAL_PATH,
+new Response(blob, {
+status: 200,
+headers: { 'Content-Type': 'image/png', 'Cache-Control': 'no-cache' }
+})
+);
+return new URL(ICON_VIRTUAL_PATH, window.location.href).href;
+} catch (err) {
+return iconDataUrl;
+}
+}
+
+// Replace icon <link> nodes cleanly so mobile browsers re-read updated icon attributes
+function refreshIconLinkElements(href) {
+const head = document.head;
+const existingApple = document.getElementById('apple-touch-icon-link');
+if (existingApple) existingApple.remove();
+
+const nextApple = document.createElement('link');
+nextApple.id = 'apple-touch-icon-link';
+nextApple.rel = 'apple-touch-icon';
+nextApple.sizes = '180x180';
+nextApple.href = href;
+head.appendChild(nextApple);
+
+const favLink = document.getElementById('favicon-link');
+if (favLink) favLink.href = href;
+}
+
+// Sync top header emblem with custom selected photo so you see it right away in the app
+function updateHeaderEmblem(customDataUrl) {
+const defaultSvg = document.getElementById('header-default-emblem');
+const customImg = document.getElementById('header-custom-photo');
+if (!defaultSvg || !customImg) return;
+
+if (customDataUrl) {
+customImg.src = customDataUrl;
+customImg.classList.remove('hidden');
+defaultSvg.classList.add('hidden');
+} else {
+customImg.src = '';
+customImg.classList.add('hidden');
+defaultSvg.classList.remove('hidden');
+}
+}
+
+function updateIconEnvironmentInfo(hasCustomPhoto) {
+const statusBadge = document.getElementById('icon-active-status');
+const envDetail = document.getElementById('icon-env-detail');
+const storagePill = document.getElementById('storage-mode-pill');
+const isFileProto = window.location.protocol === 'file:';
+const isInIframe = window.self !== window.top;
+
+if (storagePill) {
+if (isInIframe) {
+storagePill.textContent = 'Preview Sandbox';
+storagePill.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900';
+} else {
+storagePill.textContent = 'Device Storage Active';
+storagePill.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800';
+}
+}
+
+if (statusBadge) {
+if (hasCustomPhoto) {
+statusBadge.textContent = 'Custom Photo Set';
+statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800';
+} else {
+statusBadge.textContent = 'Default Emblem';
+statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-parchment-200 text-stone-600';
+}
+}
+
+if (envDetail) {
+if (isFileProto) {
+envDetail.innerHTML = 'You opened this file directly via <code>file://</code>. Mobile browsers block dynamic icon updates on local files and often save a page screenshot instead.';
+} else if (isInIframe) {
+envDetail.innerHTML = 'You are viewing this inside an embedded preview frame. Some mobile browsers only read Home Screen icons when opened directly in the main browser tab over HTTPS.';
+} else {
+envDetail.innerHTML = 'Loaded over web/server URL. If your browser still uses a page snapshot when adding to Home Screen, use <strong>Save Icon Image</strong> below.';
+}
+}
+}
+
+// Apply saved or default icon to apple-touch-icon, favicon, manifest, header, and preview image
+async function applyAppIcon(customDataUrl = null) {
+const savedIcon = customDataUrl !== null ? customDataUrl : readStorageItem(CUSTOM_ICON_KEY);
+const hasCustom = Boolean(savedIcon);
+const iconDataUrl = savedIcon || generateDefaultIconDataUrl();
+
+const manifestLink = document.getElementById('manifest-link');
+const previewImg = document.getElementById('app-icon-preview');
+
+if (previewImg) previewImg.src = iconDataUrl;
+updateHeaderEmblem(hasCustom ? savedIcon : '');
+updateIconEnvironmentInfo(hasCustom);
+
+const linkHref = await syncIconToBrowserCache(iconDataUrl);
+activeResolvedIconUrl = linkHref;
+refreshIconLinkElements(linkHref);
+
+// Update dynamic Web App Manifest for Android / PWA Home Screen installers
+if (manifestLink && window.location.protocol !== 'file:') {
+const manifestObj = {
+name: 'Chadder’s Cheese',
+short_name: 'Chadder’s',
+start_url: window.location.href,
+scope: './',
+display: 'standalone',
+background_color: '#1C1917',
+theme_color: '#1C1917',
+icons: [
+{
+src: linkHref,
+sizes: '180x180',
+type: 'image/png',
+purpose: 'any'
+}
+]
+};
+try {
+const blob = new Blob([JSON.stringify(manifestObj)], { type: 'application/manifest+json' });
+const nextUrl = URL.createObjectURL(blob);
+manifestLink.href = nextUrl;
+if (activeManifestUrl) {
+URL.revokeObjectURL(activeManifestUrl);
+}
+activeManifestUrl = nextUrl;
+} catch (err) {
+console.warn('Manifest update skipped:', err);
+}
+}
+}
+
+function downloadIconPng() {
+const savedIcon = readStorageItem(CUSTOM_ICON_KEY);
+const iconDataUrl = savedIcon || generateDefaultIconDataUrl();
+const link = document.createElement('a');
+link.href = iconDataUrl;
+link.download = 'Chadders_Cheese_Home_Icon.png';
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+showToast('Icon PNG saved — find it in Downloads / Photos');
+}
+
+// Crop/resize selected photo to a square 180x180 PNG for reliable Home Screen saving
+function handleIconPhotoSelect(event) {
+const file = event.target.files && event.target.files[0];
+if (!file) return;
+
+const reader = new FileReader();
+reader.onload = function(e) {
+const img = new Image();
+img.onload = async function() {
+const size = 180;
+const canvas = document.createElement('canvas');
+canvas.width = size;
+canvas.height = size;
+const ctx = canvas.getContext('2d');
+
+const minSide = Math.min(img.width, img.height);
+const sx = (img.width - minSide) / 2;
+const sy = (img.height - minSide) / 2;
+
+ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+
+try {
+const squareDataUrl = canvas.toDataURL('image/png');
+writeStorageItem(CUSTOM_ICON_KEY, squareDataUrl);
+await applyAppIcon(squareDataUrl);
+showToast('Photo saved! If your browser still uses a snapshot, tap Save Icon Image.');
+} catch (err) {
+showToast('Could not save photo icon on this device');
+}
+};
+img.src = e.target.result;
+};
+reader.readAsDataURL(file);
+event.target.value = '';
+}
+
+async function resetCustomAppIcon() {
+removeStorageItem(CUSTOM_ICON_KEY);
+await applyAppIcon('');
+showToast('Restored default smokehouse icon');
+}
+
+// Default realistic starter data so user immediately sees how the smokehouse profit & inventory tracker works
+const DEFAULT_STATE = {
+inventory: [
+{
+id: 'batch_1',
+variety: 'Sharp Cheddar',
+wood: 'Hickory',
+weight: '8 oz block',
+stock: 8,
+price: 8.00,
+cost: 3.10,
+date: '2026-11-18'
+},
+{
+id: 'batch_2',
+variety: 'Aged Gouda',
+wood: 'Applewood',
+weight: '8 oz block',
+stock: 5,
+price: 8.50,
+cost: 3.50,
+date: '2026-11-18'
+},
+{
+id: 'batch_3',
+variety: 'Pepper Jack',
+wood: 'Pecan',
+weight: '8 oz block',
+stock: 2,
+price: 7.50,
+cost: 2.85,
+date: '2026-11-12'
+},
+{
+id: 'batch_4',
+variety: 'Baby Swiss',
+wood: 'Cherrywood',
+weight: '8 oz block',
+stock: 4,
+price: 8.50,
+cost: 3.40,
+date: '2026-11-21'
+}
+],
+sales: [
+{
+id: 'sale_101',
+buyer: 'Uncle Dave',
+items: [
+{ batchId: 'batch_1', name: 'Hickory Smoked Sharp Cheddar', qty: 2, price: 8.00, cost: 3.10 },
+{ batchId: 'batch_3', name: 'Pecan Smoked Pepper Jack', qty: 1, price: 7.50, cost: 2.85 }
+],
+total: 23.50,
+totalCost: 9.05,
+status: 'unpaid',
+method: 'Tab',
+note: 'Dropping off at Thanksgiving dinner',
+timestamp: '2026-11-23T17:30:00'
+},
+{
+id: 'sale_102',
+buyer: 'Sarah M.',
+items: [
+{ batchId: 'batch_2', name: 'Applewood Smoked Aged Gouda', qty: 2, price: 8.50, cost: 3.50 },
+{ batchId: 'batch_4', name: 'Cherrywood Smoked Baby Swiss', qty: 1, price: 8.50, cost: 3.40 }
+],
+total: 25.50,
+totalCost: 10.40,
+status: 'paid',
+method: 'Venmo',
+note: 'Loved the last applewood batch!',
+timestamp: '2026-11-22T14:15:00'
+},
+{
+id: 'sale_103',
+buyer: 'Mom & Dad',
+items: [
+{ batchId: 'batch_1', name: 'Hickory Smoked Sharp Cheddar', qty: 3, price: 8.00, cost: 3.10 }
+],
+total: 24.00,
+totalCost: 9.30,
+status: 'paid',
+method: 'Cash',
+note: 'Family batch',
+timestamp: '2026-11-15T11:20:00'
+}
+],
+expenses: [
+{
+id: 'exp_1',
+description: '20lb Pit Boss Hickory Pellets & Vacuum Bags',
+category: 'Wood/Fuel',
+amount: 16.50,
+date: '2026-11-14'
+}
+],
+regularBuyers: ['Uncle Dave', 'Sarah M.', 'Mom & Dad', 'Coach Mike', 'Neighbor Greg']
+};
+
+// App Runtime State
+let appState = loadState();
+let activeTab = 'inventory';
+let inventoryFilter = 'all';
+let historyFilter = 'all';
+let profitTimeframe = 'all';
+
+// Quick Sale Draft State
+let saleDraft = {
+quantities: {}, // { batchId: qty }
+status: 'paid',
+method: 'Venmo'
+};
+
+function normalizeState(rawObj) {
+if (!rawObj || typeof rawObj !== 'object') return null;
+const hasInventory = Array.isArray(rawObj.inventory);
+const hasSales = Array.isArray(rawObj.sales);
+const hasExpenses = Array.isArray(rawObj.expenses);
+const hasBuyers = Array.isArray(rawObj.regularBuyers);
+if (!hasInventory && !hasSales && !hasExpenses && !hasBuyers) {
+return null;
+}
+return {
+inventory: hasInventory ? rawObj.inventory : [],
+sales: hasSales ? rawObj.sales : [],
+expenses: hasExpenses ? rawObj.expenses : [],
+regularBuyers: hasBuyers ? rawObj.regularBuyers : [],
+_userModified: Boolean(rawObj._userModified),
+_updatedAt: Number(rawObj._updatedAt || 0)
+};
+}
+
+function setSaveBadge(text, isWarning = false) {
+const badge = document.getElementById('save-status-badge');
+if (!badge) return;
+badge.textContent = text;
+badge.className = isWarning
+? 'text-[10px] font-semibold text-amber-200 bg-amber-900/80 px-1.5 py-0.2 rounded'
+: 'text-[10px] font-semibold text-emerald-300/90 bg-emerald-950/70 px-1.5 py-0.2 rounded';
+}
+
+// Load from localStorage (with window.name & URL hash recovery) so edits survive refreshes
+function loadState() {
+const candidates = [];
+
+try {
+const raw = readStorageItem(STORAGE_KEY);
+if (raw !== null) {
+const parsed = normalizeState(JSON.parse(raw));
+if (parsed) candidates.push(parsed);
+}
+} catch (err) {
+console.warn('localStorage state parse fallback:', err);
+}
+
+const winNameState = normalizeState(readWindowNameState());
+if (winNameState) candidates.push(winNameState);
+
+const hashState = normalizeState(readStateFromHash());
+if (hashState) candidates.push(hashState);
+
+if (candidates.length > 0) {
+candidates.sort((a, b) => {
+if (a._userModified !== b._userModified) return a._userModified ? -1 : 1;
+return (b._updatedAt || 0) - (a._updatedAt || 0);
+});
+const best = candidates[0];
+const serialized = JSON.stringify(best);
+writeStorageItem(STORAGE_KEY, serialized);
+writeWindowNameState(serialized);
+writeStateToHash(serialized);
+return best;
+}
+
+const initialSeed = JSON.parse(JSON.stringify(DEFAULT_STATE));
+initialSeed._userModified = false;
+initialSeed._updatedAt = 0;
+const serializedSeed = JSON.stringify(initialSeed);
+writeStorageItem(STORAGE_KEY, serializedSeed);
+writeWindowNameState(serializedSeed);
+syncStateToBrowserCache(serializedSeed);
+writeStateToIDB(serializedSeed);
+return initialSeed;
+}
+
+// Async recovery check across IndexedDB & CacheStorage after reload
+async function hydrateStateFromSecondaryStoresIfNeeded() {
+const localRaw = readStorageItem(STORAGE_KEY);
+const idbState = normalizeState(await readStateFromIDB());
+const cachedState = normalizeState(await readStateFromBrowserCache());
+const winState = normalizeState(readWindowNameState());
+const hashState = normalizeState(readStateFromHash());
+
+const allFound = [idbState, cachedState, winState, hashState].filter(Boolean);
+if (allFound.length === 0) return;
+
+allFound.sort((a, b) => {
+if (a._userModified !== b._userModified) return a._userModified ? -1 : 1;
+return (b._updatedAt || 0) - (a._updatedAt || 0);
+});
+
+const newestSecondary = allFound[0];
+const currentUpdated = Number(appState._updatedAt || 0);
+const secondaryUpdated = Number(newestSecondary._updatedAt || 0);
+
+const shouldAdopt =
+(localRaw === null && (newestSecondary._userModified || secondaryUpdated > 0)) ||
+(newestSecondary._userModified && (!appState._userModified || secondaryUpdated > currentUpdated));
+
+if (shouldAdopt) {
+appState = newestSecondary;
+const serialized = JSON.stringify(appState);
+writeStorageItem(STORAGE_KEY, serialized);
+writeWindowNameState(serialized);
+writeStateToHash(serialized);
+renderAll();
+setSaveBadge('Synced');
+}
+}
+
+function saveState(markModified = true) {
+if (markModified) {
+appState._userModified = true;
+}
+appState._updatedAt = Date.now();
+const serialized = JSON.stringify(appState);
+const savedLocal = writeStorageItem(STORAGE_KEY, serialized);
+writeWindowNameState(serialized);
+writeStateToHash(serialized);
+syncStateToBrowserCache(serialized);
+writeStateToIDB(serialized).then((ok) => {
+const isInIframe = window.self !== window.top;
+if (isInIframe) {
+setSaveBadge('Saved (Session)', true);
+} else {
+setSaveBadge(savedLocal || ok ? 'Saved' : 'Session Only', !(savedLocal || ok));
+}
+});
+
+renderAll();
+}
+
+// Download complete JSON backup snapshot of all batches, sales, tabs, expenses, and buyers
+function downloadBackupJSON() {
+const backupPayload = {
+app: 'ChaddersCheese',
+version: 2,
+exportedAt: new Date().toISOString(),
+data: appState
+};
+const blob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: 'application/json' });
+const url = URL.createObjectURL(blob);
+const link = document.createElement('a');
+link.href = url;
+link.setAttribute('download', `Chadders_Cheese_Backup_${new Date().toISOString().slice(0,10)}.json`);
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+URL.revokeObjectURL(url);
+showToast('Backup file downloaded!');
+}
+
+// Restore app state from a previously downloaded JSON backup file
+function handleRestoreBackup(event) {
+const file = event.target.files && event.target.files[0];
+if (!file) return;
+
+const reader = new FileReader();
+reader.onload = function(e) {
+try {
+const parsed = JSON.parse(e.target.result);
+const candidate = parsed && parsed.data ? parsed.data : parsed;
+const normalized = normalizeState(candidate);
+if (!normalized) {
+showToast('Invalid backup file format');
+return;
+}
+appState = normalized;
+saleDraft.quantities = {};
+saveState(true);
+closeSettingsModal();
+showToast('Smokehouse data restored!');
+} catch (err) {
+showToast('Could not read backup file');
+}
+};
+reader.readAsText(file);
+event.target.value = '';
+}
+
+// Format currency cleanly
+function formatMoney(val) {
+return '$' + Number(val || 0).toFixed(2);
+}
+
+// Format date nicely for mobile
+function formatShortDate(dateStr) {
+if (!dateStr) return 'No date';
+const d = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T12:00:00');
+return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// Toast Feedback Helper
+let toastTimer = null;
+function showToast(msg) {
+const toast = document.getElementById('toast');
+document.getElementById('toast-message').textContent = msg;
+toast.classList.remove('opacity-0', '-translate-y-2');
+toast.classList.add('opacity-100', 'translate-y-0');
+clearTimeout(toastTimer);
+toastTimer = setTimeout(() => {
+toast.classList.remove('opacity-100', 'translate-y-0');
+toast.classList.add('opacity-0', '-translate-y-2');
+}, 2400);
+}
+
+// =====================================================================
+// TAB NAVIGATION
+// =====================================================================
+function switchTab(tabName, optionalSubFilter = null) {
+activeTab = tabName;
+['inventory', 'sale', 'history', 'profits'].forEach(t => {
+document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tabName);
+const navBtn = document.getElementById(`nav-${t}`);
+if (t === tabName) {
+navBtn.classList.remove('text-stone-400');
+navBtn.classList.add('text-cheddar-400');
+} else {
+navBtn.classList.remove('text-cheddar-400');
+navBtn.classList.add('text-stone-400');
+}
+});
+
+const salePill = document.getElementById('nav-sale-pill');
+if (tabName === 'sale') {
+salePill.classList.add('bg-cheddar-500/20');
+} else {
+salePill.classList.remove('bg-cheddar-500/20');
+}
+
+if (tabName === 'history' && optionalSubFilter) {
+setHistoryFilter(optionalSubFilter);
+}
+
+window.scrollTo({ top: 0, behavior: 'smooth' });
+renderAll();
+}
+
+// Helper to compute financial totals for a given timeframe ('all', 'month', '30days')
+function calculateProfitMetrics(timeframe = 'all') {
+const now = new Date();
+const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+const inTimeframe = (dateStr) => {
+if (timeframe === 'all' || !dateStr) return true;
+const d = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T12:00:00');
+if (timeframe === 'month') {
+return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+}
+if (timeframe === '30days') {
+return d >= thirtyDaysAgo;
+}
+return true;
+};
+
+const filteredSales = appState.sales.filter(s => inTimeframe(s.timestamp));
+const filteredExpenses = (appState.expenses || []).filter(e => inTimeframe(e.date));
+
+let grossRevenue = 0;
+let paidRevenue = 0;
+let unpaidRevenue = 0;
+let totalCOGS = 0;
+let blocksSold = 0;
+
+filteredSales.forEach(s => {
+const rev = Number(s.total || 0);
+grossRevenue += rev;
+if (s.status === 'paid') paidRevenue += rev;
+else unpaidRevenue += rev;
+
+// Calculate COGS from line items (with fallback to current inventory cost if legacy order)
+let orderCost = 0;
+s.items.forEach(item => {
+blocksSold += Number(item.qty || 0);
+let unitC = item.cost;
+if (unitC === undefined || unitC === null) {
+const batch = appState.inventory.find(b => b.id === item.batchId);
+unitC = batch ? Number(batch.cost || 0) : 0;
+}
+orderCost += Number(item.qty || 0) * Number(unitC || 0);
+});
+totalCOGS += orderCost;
+});
+
+const totalExpenses = filteredExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+const netProfit = grossRevenue - totalCOGS - totalExpenses;
+const netMarginPct = grossRevenue > 0 ? Math.round((netProfit / grossRevenue) * 100) : 0;
+
+return {
+filteredSales,
+filteredExpenses,
+grossRevenue,
+paidRevenue,
+unpaidRevenue,
+totalCOGS,
+totalExpenses,
+netProfit,
+netMarginPct,
+blocksSold
+};
+}
+
+// =====================================================================
+// RENDER HEADER KPIs & ANALYTICS
+// =====================================================================
+function renderKPIs() {
+const allMetrics = calculateProfitMetrics('all');
+const openTabsTotal = appState.sales
+.filter(s => s.status === 'unpaid')
+.reduce((sum, s) => sum + Number(s.total), 0);
+const unpaidCount = appState.sales.filter(s => s.status === 'unpaid').length;
+const totalBlocksInStock = appState.inventory.reduce((sum, b) => sum + Number(b.stock), 0);
+
+const profitEl = document.getElementById('kpi-profit');
+profitEl.textContent = (allMetrics.netProfit < 0 ? '−$' + Math.abs(allMetrics.netProfit).toFixed(2) : formatMoney(allMetrics.netProfit));
+profitEl.className = `font-serif text-base sm:text-lg font-bold ${allMetrics.netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+
+document.getElementById('kpi-stock').textContent = `${totalBlocksInStock} blk${totalBlocksInStock === 1 ? '' : 's'}`;
+document.getElementById('kpi-tabs').textContent = formatMoney(openTabsTotal);
+
+// Unpaid tab indicators
+const navDot = document.getElementById('nav-tab-dot');
+const histBadge = document.getElementById('unpaid-count-badge');
+if (unpaidCount > 0) {
+navDot.classList.remove('hidden');
+histBadge.classList.remove('hidden');
+histBadge.textContent = unpaidCount;
+} else {
+navDot.classList.add('hidden');
+histBadge.classList.add('hidden');
+}
+}
+
+// =====================================================================
+// TAB 1: INVENTORY RENDER & ACTIONS
+// =====================================================================
+function setInventoryFilter(filter) {
+inventoryFilter = filter;
+const allBtn = document.getElementById('inv-filter-all');
+const lowBtn = document.getElementById('inv-filter-low');
+
+if (filter === 'all') {
+allBtn.className = 'px-3.5 py-1.5 rounded-full text-xs font-semibold bg-smokehouse-900 text-parchment-50 transition';
+lowBtn.className = 'px-3.5 py-1.5 rounded-full text-xs font-semibold bg-parchment-200 text-stone-700 hover:bg-parchment-300 transition';
+} else {
+lowBtn.className = 'px-3.5 py-1.5 rounded-full text-xs font-semibold bg-smokehouse-900 text-parchment-50 transition';
+allBtn.className = 'px-3.5 py-1.5 rounded-full text-xs font-semibold bg-parchment-200 text-stone-700 hover:bg-parchment-300 transition';
+}
+renderInventory();
+}
+
+function renderInventory() {
+const container = document.getElementById('inventory-list');
+let items = [...appState.inventory];
+
+if (inventoryFilter === 'low') {
+items = items.filter(b => b.stock <= 2);
+}
+
+if (items.length === 0) {
+container.innerHTML = `
+<div class="bg-parchment-50 rounded-2xl p-8 text-center border border-dashed border-parchment-300 space-y-2">
+<p class="font-serif text-base font-bold text-smokehouse-900">
+${inventoryFilter === 'low' ? 'No low-stock batches!' : 'Smokehouse is empty'}
+</p>
+<p class="text-xs text-stone-500">
+${inventoryFilter === 'low' ? 'All your smoked cheeses have plenty of blocks ready.' : 'Tap "+ Add Batch" above to log your next smoke session.'}
+</p>
+</div>
+`;
+return;
+}
+
+container.innerHTML = items.map(batch => {
+const isOut = batch.stock === 0;
+const isLow = batch.stock > 0 && batch.stock <= 2;
+const unitCost = Number(batch.cost || 0);
+const unitPrice = Number(batch.price || 0);
+const unitProfit = unitPrice - unitCost;
+const marginPct = unitPrice > 0 ? Math.round((unitProfit / unitPrice) * 100) : 0;
+
+let statusBadge = '';
+if (isOut) {
+statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-800 border border-red-200">Sold Out</span>`;
+} else if (isLow) {
+statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300">Low Stock</span>`;
+}
+
+return `
+<div class="bg-parchment-50 rounded-2xl p-4 shadow-sm border ${isOut ? 'border-red-200/80 opacity-85' : isLow ? 'border-amber-300' : 'border-parchment-300/90'} transition">
+<div class="flex items-start justify-between gap-2">
+<div class="space-y-1">
+<div class="flex items-center flex-wrap gap-1.5">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-smokehouse-900 text-cheddar-400">
+🔥 ${escapeHtml(batch.wood)}
+</span>
+${statusBadge}
+</div>
+<h3 class="font-serif text-lg font-bold text-smokehouse-900 leading-snug">
+${escapeHtml(batch.variety)}
+</h3>
+<p class="text-xs text-stone-500 font-medium">
+${escapeHtml(batch.weight || '8 oz block')} • Smoked ${formatShortDate(batch.date)}
+</p>
+</div>
+
+<!-- Price, Cost & Profit Margin -->
+<div class="text-right shrink-0 flex flex-col items-end">
+<span class="font-serif text-lg font-bold text-smokehouse-900">${formatMoney(unitPrice)}</span>
+<span class="text-[11px] font-bold ${unitProfit >= 0 ? 'text-emerald-700' : 'text-rose-600'}">
++${formatMoney(unitProfit)} profit (${marginPct}%)
+</span>
+<span class="text-[10px] text-stone-400 font-medium">Cost: ${formatMoney(unitCost)}/blk</span>
+<button onclick="openBatchModal('${batch.id}')"
+class="mt-1 text-xs font-semibold text-cheddar-700 hover:text-cheddar-800 underline underline-offset-2 py-0.5 px-1">
+Edit
+</button>
+</div>
+</div>
+
+<!-- Bottom Quick Stock Adjuster Bar -->
+<div class="mt-3 pt-3 border-t border-parchment-200 flex items-center justify-between">
+<span class="text-xs font-semibold text-stone-600">Blocks on hand:</span>
+<div class="flex items-center gap-2">
+<button onclick="adjustStock('${batch.id}', -1)"
+class="w-9 h-9 rounded-xl bg-parchment-200 hover:bg-parchment-300 active:scale-90 text-smokehouse-900 font-extrabold text-lg flex items-center justify-center transition">
+−
+</button>
+<span class="w-9 text-center font-serif text-lg font-bold ${isOut ? 'text-red-600' : 'text-smokehouse-900'}">
+${batch.stock}
+</span>
+<button onclick="adjustStock('${batch.id}', 1)"
+class="w-9 h-9 rounded-xl bg-smokehouse-900 hover:bg-stone-800 active:scale-90 text-cheddar-400 font-extrabold text-lg flex items-center justify-center transition">
++
+</button>
+</div>
+</div>
+</div>
+`;
+}).join('');
+}
+
+function adjustStock(batchId, delta) {
+const batch = appState.inventory.find(b => b.id === batchId);
+if (!batch) return;
+const nextVal = Math.max(0, Number(batch.stock) + delta);
+if (nextVal === batch.stock) return;
+batch.stock = nextVal;
+saveState();
+showToast(`${batch.variety}: ${batch.stock} block${batch.stock === 1 ? '' : 's'}`);
+}
+
+// Batch Add/Edit Modal Controls
+function openBatchModal(batchId = null) {
+const modal = document.getElementById('batch-modal');
+const title = document.getElementById('batch-modal-title');
+const delBtn = document.getElementById('btn-delete-batch');
+
+if (batchId) {
+const batch = appState.inventory.find(b => b.id === batchId);
+if (!batch) return;
+title.textContent = 'Edit Smoke Batch';
+document.getElementById('batch-id').value = batch.id;
+document.getElementById('batch-variety').value = batch.variety;
+document.getElementById('batch-wood').value = batch.wood;
+document.getElementById('batch-weight').value = batch.weight || '8 oz block';
+document.getElementById('batch-stock').value = batch.stock;
+document.getElementById('batch-price').value = batch.price;
+document.getElementById('batch-cost').value = batch.cost !== null && batch.cost !== undefined ? batch.cost : '';
+document.getElementById('batch-date').value = batch.date || new Date().toISOString().split('T')[0];
+delBtn.classList.remove('hidden');
+} else {
+title.textContent = 'Add New Smoke Batch';
+document.getElementById('batch-form').reset();
+document.getElementById('batch-id').value = '';
+document.getElementById('batch-weight').value = '8 oz block';
+document.getElementById('batch-date').value = new Date().toISOString().split('T')[0];
+delBtn.classList.add('hidden');
+}
+
+modal.classList.remove('hidden');
+}
+
+function closeBatchModal() {
+document.getElementById('batch-modal').classList.add('hidden');
+}
+
+function saveBatch(e) {
+if (e && typeof e.preventDefault === 'function') e.preventDefault();
+const id = document.getElementById('batch-id').value;
+const varietyInput = document.getElementById('batch-variety');
+const variety = varietyInput.value.trim();
+const wood = document.getElementById('batch-wood').value;
+const weight = document.getElementById('batch-weight').value.trim() || '8 oz block';
+const stock = parseInt(document.getElementById('batch-stock').value, 10) || 0;
+const price = parseFloat(document.getElementById('batch-price').value) || 0;
+const costRaw = document.getElementById('batch-cost').value;
+const cost = costRaw !== '' ? parseFloat(costRaw) : 0;
+const date = document.getElementById('batch-date').value;
+
+if (!variety) {
+varietyInput.focus();
+showToast('Please enter a cheese variety!');
+return;
+}
+
+if (id) {
+const idx = appState.inventory.findIndex(b => b.id === id);
+if (idx !== -1) {
+appState.inventory[idx] = { ...appState.inventory[idx], variety, wood, weight, stock, price, cost, date };
+}
+showToast('Batch updated!');
+} else {
+appState.inventory.unshift({
+id: 'batch_' + Date.now(),
+variety,
+wood,
+weight,
+stock,
+price,
+cost,
+date
+});
+showToast(`Added ${wood} ${variety}!`);
+}
+
+closeBatchModal();
+saveState();
+}
+
+function deleteCurrentBatch() {
+const id = document.getElementById('batch-id').value;
+if (!id) return;
+appState.inventory = appState.inventory.filter(b => b.id !== id);
+delete saleDraft.quantities[id];
+closeBatchModal();
+saveState();
+showToast('Batch removed from inventory');
+}
+
+// =====================================================================
+// TAB 2: QUICK SALE RENDER & CHECKOUT LOGIC
+// =====================================================================
+function renderSaleTab() {
+// 1. Render Quick-Pick Repeat Buyers
+const buyersContainer = document.getElementById('quick-buyers-list');
+buyersContainer.innerHTML = appState.regularBuyers.map(name => `
+<button type="button" onclick="selectQuickBuyer('${escapeHtml(name)}')"
+class="px-3 py-1.5 rounded-full text-xs font-semibold bg-parchment-200 hover:bg-cheddar-500/25 active:scale-95 text-smokehouse-900 border border-parchment-300 transition">
+${escapeHtml(name)}
+</button>
+`).join('');
+
+// 2. Render In-Stock Cheese Picker
+const picker = document.getElementById('sale-cheese-picker');
+const availableBatches = appState.inventory.filter(b => b.stock > 0);
+
+if (availableBatches.length === 0) {
+picker.innerHTML = `
+<div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-center space-y-2">
+<p class="text-xs font-bold text-amber-900">No smoked cheese blocks currently in stock!</p>
+<button type="button" onclick="switchTab('inventory'); openBatchModal();"
+class="text-xs font-bold text-cheddar-700 underline">
++ Add a batch in Inventory first
+</button>
+</div>
+`;
+} else {
+picker.innerHTML = availableBatches.map(batch => {
+const selectedQty = saleDraft.quantities[batch.id] || 0;
+return `
+<div class="flex items-center justify-between p-3 rounded-xl border ${selectedQty > 0 ? 'bg-cheddar-500/10 border-cheddar-500' : 'bg-white border-parchment-300'} transition">
+<div class="pr-2">
+<div class="font-bold text-sm text-smokehouse-900 leading-tight">
+${escapeHtml(batch.wood)} ${escapeHtml(batch.variety)}
+</div>
+<div class="text-xs text-stone-500 mt-0.5">
+<span class="font-bold text-emerald-800">${formatMoney(batch.price)}</span> • ${batch.stock} left (${escapeHtml(batch.weight || '8 oz')})
+</div>
+</div>
+
+<div class="flex items-center gap-1.5 shrink-0">
+<button type="button" onclick="updateDraftQty('${batch.id}', -1)"
+class="w-9 h-9 rounded-lg ${selectedQty > 0 ? 'bg-parchment-200 text-smokehouse-900' : 'bg-stone-100 text-stone-300'} font-extrabold text-base flex items-center justify-center active:scale-90 transition">
+−
+</button>
+<span class="w-7 text-center font-serif font-bold text-base ${selectedQty > 0 ? 'text-cheddar-800' : 'text-stone-400'}">
+${selectedQty}
+</span>
+<button type="button" onclick="updateDraftQty('${batch.id}', 1)"
+class="w-9 h-9 rounded-lg ${selectedQty < batch.stock ? 'bg-smokehouse-900 text-cheddar-400' : 'bg-stone-200 text-stone-400'} font-extrabold text-base flex items-center justify-center active:scale-90 transition">
++
+</button>
+</div>
+</div>
+`;
+}).join('');
+}
+
+// 3. Calculate & Display Totals + Real-Time Estimated Profit
+let totalBlocks = 0;
+let totalPrice = 0;
+let totalCost = 0;
+
+Object.entries(saleDraft.quantities).forEach(([batchId, qty]) => {
+const batch = appState.inventory.find(b => b.id === batchId);
+if (batch && qty > 0) {
+totalBlocks += qty;
+totalPrice += qty * Number(batch.price);
+totalCost += qty * Number(batch.cost || 0);
+}
+});
+
+const estProfit = totalPrice - totalCost;
+const estMarginPct = totalPrice > 0 ? Math.round((estProfit / totalPrice) * 100) : 0;
+
+document.getElementById('cart-item-count').textContent = `${totalBlocks} block${totalBlocks === 1 ? '' : 's'} selected`;
+document.getElementById('sale-total-display').textContent = formatMoney(totalPrice);
+document.getElementById('sale-profit-display').textContent = `${estProfit >= 0 ? '+' : '−'}${formatMoney(Math.abs(estProfit))}`;
+document.getElementById('sale-summary-pill').innerHTML = totalBlocks > 0
+? `<span>${totalBlocks} block${totalBlocks === 1 ? '' : 's'} • ${saleDraft.status === 'paid' ? saleDraft.method : 'Open Tab'}</span><span class="text-emerald-400 font-semibold">${estMarginPct}% margin</span>`
+: `<span>Select items above</span><span></span>`;
+}
+
+function selectQuickBuyer(name) {
+document.getElementById('buyer-name').value = name;
+}
+
+function updateDraftQty(batchId, delta) {
+const batch = appState.inventory.find(b => b.id === batchId);
+if (!batch) return;
+const current = saleDraft.quantities[batchId] || 0;
+const next = Math.max(0, Math.min(batch.stock, current + delta));
+if (next === 0) {
+delete saleDraft.quantities[batchId];
+} else {
+saleDraft.quantities[batchId] = next;
+}
+renderSaleTab();
+}
+
+function setPaymentStatus(status) {
+saleDraft.status = status;
+const paidBtn = document.getElementById('btn-status-paid');
+const unpaidBtn = document.getElementById('btn-status-unpaid');
+const methodBox = document.getElementById('payment-method-container');
+
+if (status === 'paid') {
+paidBtn.className = 'py-2.5 px-3 rounded-lg text-sm font-bold flex items-center justify-center gap-1.5 bg-emerald-700 text-white shadow-sm transition';
+unpaidBtn.className = 'py-2.5 px-3 rounded-lg text-sm font-bold flex items-center justify-center gap-1.5 text-stone-700 hover:bg-parchment-300/60 transition';
+methodBox.classList.remove('hidden');
+} else {
+unpaidBtn.className = 'py-2.5 px-3 rounded-lg text-sm font-bold flex items-center justify-center gap-1.5 bg-amber-600 text-white shadow-sm transition';
+paidBtn.className = 'py-2.5 px-3 rounded-lg text-sm font-bold flex items-center justify-center gap-1.5 text-stone-700 hover:bg-parchment-300/60 transition';
+methodBox.classList.add('hidden');
+}
+renderSaleTab();
+}
+
+function setPaymentMethod(method) {
+saleDraft.method = method;
+document.querySelectorAll('.pay-method-btn').forEach(btn => {
+if (btn.dataset.method === method) {
+btn.className = 'pay-method-btn py-2 rounded-xl text-xs font-bold border border-cheddar-600 bg-cheddar-500/15 text-cheddar-800 transition';
+} else {
+btn.className = 'pay-method-btn py-2 rounded-xl text-xs font-semibold border border-parchment-300 bg-white text-stone-700 transition';
+}
+});
+renderSaleTab();
+}
+
+function completeSale() {
+const buyerInput = document.getElementById('buyer-name');
+const buyer = buyerInput.value.trim();
+const note = document.getElementById('sale-note').value.trim();
+
+if (!buyer) {
+buyerInput.focus();
+showToast('Please enter who is buying!');
+return;
+}
+
+const lineItems = [];
+let orderTotal = 0;
+let orderTotalCost = 0;
+
+Object.entries(saleDraft.quantities).forEach(([batchId, qty]) => {
+const batch = appState.inventory.find(b => b.id === batchId);
+if (batch && qty > 0) {
+const unitPrice = Number(batch.price);
+const unitCost = Number(batch.cost || 0);
+lineItems.push({
+batchId: batch.id,
+name: `${batch.wood} Smoked ${batch.variety}`,
+qty: qty,
+price: unitPrice,
+cost: unitCost
+});
+orderTotal += qty * unitPrice;
+orderTotalCost += qty * unitCost;
+}
+});
+
+if (lineItems.length === 0) {
+showToast('Select at least 1 block of cheese!');
+return;
+}
+
+// Deduct sold quantities from inventory
+lineItems.forEach(item => {
+const batch = appState.inventory.find(b => b.id === item.batchId);
+if (batch) {
+batch.stock = Math.max(0, Number(batch.stock) - item.qty);
+}
+});
+
+// Save buyer to quick-pick list if new (keep top 8 recent)
+const existingIdx = appState.regularBuyers.findIndex(b => b.toLowerCase() === buyer.toLowerCase());
+if (existingIdx !== -1) {
+appState.regularBuyers.splice(existingIdx, 1);
+}
+appState.regularBuyers.unshift(buyer);
+if (appState.regularBuyers.length > 8) {
+appState.regularBuyers = appState.regularBuyers.slice(0, 8);
+}
+// Record sale transaction with locked-in unit costs
+const newSale = {
+id: 'sale_' + Date.now(),
+buyer,
+items: lineItems,
+total: orderTotal,
+totalCost: orderTotalCost,
+status: saleDraft.status,
+method: saleDraft.status === 'paid' ? saleDraft.method : 'Tab',
+note,
+timestamp: new Date().toISOString()
+};
+
+appState.sales.unshift(newSale);
+
+// Reset Quick Sale form
+saleDraft.quantities = {};
+buyerInput.value = '';
+document.getElementById('sale-note').value = '';
+
+saveState();
+showToast(newSale.status === 'paid' ? 'Sale recorded! Stock updated.' : `Tab opened for ${buyer}!`);
+switchTab('history');
+}
+
+// =====================================================================
+// TAB 4: PROFITS, COGS & SMOKEHOUSE EXPENSES RENDER & ACTIONS
+// =====================================================================
+function setProfitTimeframe(tf) {
+profitTimeframe = tf;
+['all', 'month', '30days'].forEach(key => {
+const btn = document.getElementById(`prof-tf-${key}`);
+if (key === tf) {
+btn.className = 'py-2 rounded-lg text-xs font-bold bg-smokehouse-900 text-parchment-50 shadow-sm transition';
+} else {
+btn.className = 'py-2 rounded-lg text-xs font-bold text-stone-700 hover:bg-parchment-300/50 transition';
+}
+});
+renderProfitsTab();
+}
+
+function renderProfitsTab() {
+const metrics = calculateProfitMetrics(profitTimeframe);
+
+const netEl = document.getElementById('prof-net-profit');
+netEl.textContent = metrics.netProfit < 0
+? '−$' + Math.abs(metrics.netProfit).toFixed(2)
+: formatMoney(metrics.netProfit);
+netEl.className = `font-serif text-3xl font-bold ${metrics.netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+
+const marginBadge = document.getElementById('prof-net-margin');
+marginBadge.textContent = `${metrics.netMarginPct}% net margin`;
+marginBadge.className = metrics.netProfit >= 0
+? 'px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+: 'px-2.5 py-1 rounded-full text-xs font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/30';
+
+document.getElementById('prof-gross-rev').textContent = formatMoney(metrics.grossRevenue);
+document.getElementById('prof-rev-split').textContent = `${formatMoney(metrics.paidRevenue)} paid / ${formatMoney(metrics.unpaidRevenue)} tab`;
+document.getElementById('prof-total-cogs').textContent = `−${formatMoney(metrics.totalCOGS)}`;
+document.getElementById('prof-blocks-count').textContent = `${metrics.blocksSold} block${metrics.blocksSold === 1 ? '' : 's'} sold`;
+document.getElementById('prof-total-expenses').textContent = `−${formatMoney(metrics.totalExpenses)}`;
+document.getElementById('prof-expenses-count').textContent = `${metrics.filteredExpenses.length} entr${metrics.filteredExpenses.length === 1 ? 'y' : 'ies'}`;
+
+// Render Profit by Cheese Variety Breakdown
+const cheeseMap = {};
+metrics.filteredSales.forEach(sale => {
+sale.items.forEach(item => {
+const key = item.name;
+if (!cheeseMap[key]) {
+cheeseMap[key] = { name: key, qty: 0, revenue: 0, cost: 0 };
+}
+let unitC = item.cost;
+if (unitC === undefined || unitC === null) {
+const batch = appState.inventory.find(b => b.id === item.batchId);
+unitC = batch ? Number(batch.cost || 0) : 0;
+}
+cheeseMap[key].qty += Number(item.qty || 0);
+cheeseMap[key].revenue += Number(item.qty || 0) * Number(item.price || 0);
+cheeseMap[key].cost += Number(item.qty || 0) * Number(unitC || 0);
+});
+});
+
+const cheeseStats = Object.values(cheeseMap).map(c => ({
+...c,
+profit: c.revenue - c.cost,
+marginPct: c.revenue > 0 ? Math.round(((c.revenue - c.cost) / c.revenue) * 100) : 0
+})).sort((a, b) => b.profit - a.profit);
+
+const cheeseListEl = document.getElementById('profit-by-cheese-list');
+if (cheeseStats.length === 0) {
+cheeseListEl.innerHTML = `<p class="text-xs text-stone-500 text-center py-3">No cheese sales in this timeframe yet.</p>`;
+} else {
+const maxProfit = Math.max(...cheeseStats.map(c => Math.max(0, c.profit)), 1);
+cheeseListEl.innerHTML = cheeseStats.map(c => {
+const barWidth = Math.max(6, Math.round((Math.max(0, c.profit) / maxProfit) * 100));
+return `
+<div class="space-y-1">
+<div class="flex items-center justify-between text-xs">
+<span class="font-bold text-smokehouse-900 truncate pr-2">${escapeHtml(c.name)}</span>
+<span class="font-bold text-emerald-700 shrink-0">+${formatMoney(c.profit)} <span class="text-stone-400 font-medium">(${c.marginPct}%)</span></span>
+</div>
+<div class="w-full h-2 bg-parchment-200 rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-cheddar-500 to-emerald-600 rounded-full" style="width: ${barWidth}%"></div>
+</div>
+<div class="flex items-center justify-between text-[10px] text-stone-500">
+<span>${c.qty} block${c.qty === 1 ? '' : 's'} sold</span>
+<span>Rev: ${formatMoney(c.revenue)} • Cost: ${formatMoney(c.cost)}</span>
+</div>
+</div>
+`;
+}).join('');
+}
+
+// Render Smokehouse Expenses List
+const expListEl = document.getElementById('expenses-list');
+const sortedExpenses = [...metrics.filteredExpenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+if (sortedExpenses.length === 0) {
+expListEl.innerHTML = `<p class="text-xs text-stone-500 text-center py-3">No extra supply expenses logged for this period.</p>`;
+} else {
+expListEl.innerHTML = sortedExpenses.map(exp => `
+<div class="flex items-center justify-between p-3 rounded-xl bg-white border border-parchment-200">
+<div class="pr-2">
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-parchment-200 text-stone-700">${escapeHtml(exp.category)}</span>
+<span class="text-[11px] text-stone-400">${formatShortDate(exp.date)}</span>
+</div>
+<p class="text-xs font-bold text-smokehouse-900 mt-1">${escapeHtml(exp.description)}</p>
+</div>
+<div class="flex items-center gap-2.5 shrink-0">
+<span class="font-serif text-sm font-bold text-rose-700">−${formatMoney(exp.amount)}</span>
+<button onclick="deleteExpense('${exp.id}')" aria-label="Delete expense"
+class="p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+</svg>
+</button>
+</div>
+</div>
+`).join('');
+}
+}
+
+function openExpenseModal() {
+document.getElementById('exp-desc').value = '';
+document.getElementById('exp-amount').value = '';
+document.getElementById('exp-category').value = 'Wood/Fuel';
+document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
+document.getElementById('expense-modal').classList.remove('hidden');
+}
+
+function closeExpenseModal() {
+document.getElementById('expense-modal').classList.add('hidden');
+}
+
+function saveExpense(e) {
+if (e && typeof e.preventDefault === 'function') e.preventDefault();
+const descInput = document.getElementById('exp-desc');
+const description = descInput.value.trim();
+const category = document.getElementById('exp-category').value;
+const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
+const date = document.getElementById('exp-date').value || new Date().toISOString().split('T')[0];
+
+if (!description) {
+descInput.focus();
+showToast('Please enter an expense description!');
+return;
+}
+
+if (amount <= 0) {
+document.getElementById('exp-amount').focus();
+showToast('Please enter an amount greater than $0!');
+return;
+}
+
+appState.expenses.unshift({
+id: 'exp_' + Date.now(),
+description,
+category,
+amount,
+date
+});
+
+closeExpenseModal();
+saveState();
+showToast('Smokehouse expense logged!');
+}
+
+function deleteExpense(expId) {
+appState.expenses = appState.expenses.filter(e => e.id !== expId);
+saveState();
+showToast('Expense removed');
+}
+
+// =====================================================================
+// TAB 3: SALES & OPEN TABS HISTORY RENDER & ACTIONS
+// =====================================================================
+function setHistoryFilter(filter) {
+historyFilter = filter;
+['all', 'unpaid', 'paid'].forEach(key => {
+const btn = document.getElementById(`hist-filter-${key}`);
+if (key === filter) {
+btn.className = 'py-2 rounded-lg text-xs font-bold bg-smokehouse-900 text-parchment-50 shadow-sm transition flex items-center justify-center gap-1';
+} else {
+btn.className = 'py-2 rounded-lg text-xs font-bold text-stone-700 hover:bg-parchment-300/50 transition flex items-center justify-center gap-1';
+}
+});
+renderHistory();
+}
+
+function renderHistory() {
+const container = document.getElementById('sales-history-list');
+let sales = [...appState.sales];
+
+if (historyFilter === 'unpaid') {
+sales = sales.filter(s => s.status === 'unpaid');
+} else if (historyFilter === 'paid') {
+sales = sales.filter(s => s.status === 'paid');
+}
+
+// Sort so Unpaid Tabs surface cleanly at the top when viewing "All"
+if (historyFilter === 'all') {
+sales.sort((a, b) => {
+if (a.status === b.status) return new Date(b.timestamp) - new Date(a.timestamp);
+return a.status === 'unpaid' ? -1 : 1;
+});
+}
+
+if (sales.length === 0) {
+container.innerHTML = `
+<div class="bg-parchment-50 rounded-2xl p-8 text-center border border-dashed border-parchment-300 space-y-1.5">
+<p class="font-serif text-base font-bold text-smokehouse-900">No orders here yet</p>
+<p class="text-xs text-stone-500">
+${historyFilter === 'unpaid' ? 'Everyone is all settled up!' : 'Record your first sale in the Quick Sale tab.'}
+</p>
+</div>
+`;
+return;
+}
+
+container.innerHTML = sales.map(sale => {
+const isUnpaid = sale.status === 'unpaid';
+const itemsSummary = sale.items.map(i => `${i.qty}× ${i.name}`).join(', ');
+
+return `
+<div class="bg-parchment-50 rounded-2xl p-4 shadow-sm border ${isUnpaid ? 'border-amber-400 ring-1 ring-amber-400/30' : 'border-parchment-300/90'} space-y-2.5">
+<div class="flex items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-serif text-base font-bold text-smokehouse-900">${escapeHtml(sale.buyer)}</h3>
+${isUnpaid
+? `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300">Unpaid Tab</span>`
+: `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">Paid • ${escapeHtml(sale.method)}</span>`
+}
+</div>
+<p class="text-xs text-stone-500 mt-0.5">${formatShortDate(sale.timestamp)}</p>
+</div>
+<span class="font-serif text-lg font-bold ${isUnpaid ? 'text-amber-700' : 'text-smokehouse-900'}">
+${formatMoney(sale.total)}
+</span>
+</div>
+
+<p class="text-xs font-medium text-stone-700 bg-white/80 rounded-xl px-3 py-2 border border-parchment-200">
+${escapeHtml(itemsSummary)}
+</p>
+
+${sale.note ? `<p class="text-[11px] italic text-stone-500">“${escapeHtml(sale.note)}”</p>` : ''}
+
+<div class="pt-1 flex items-center justify-between gap-2">
+<button onclick="openOrderModal('${sale.id}')"
+class="text-xs font-semibold text-stone-500 hover:text-smokehouse-900 py-1.5 px-2">
+Details / Void
+</button>
+
+${isUnpaid ? `
+<button onclick="markSalePaid('${sale.id}')"
+class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white text-xs font-bold shadow-sm transition">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+</svg>
+<span>Mark Paid</span>
+</button>
+` : ''}
+</div>
+</div>
+`;
+}).join('');
+}
+
+function markSalePaid(saleId, method = 'Settled') {
+const sale = appState.sales.find(s => s.id === saleId);
+if (!sale) return;
+sale.status = 'paid';
+sale.method = method;
+closeOrderModal();
+saveState();
+showToast(`${sale.buyer}'s tab marked paid!`);
+}
+
+function openOrderModal(saleId) {
+const sale = appState.sales.find(s => s.id === saleId);
+if (!sale) return;
+
+document.getElementById('order-modal-buyer').textContent = `${sale.buyer}'s Order`;
+document.getElementById('order-modal-date').textContent = new Date(sale.timestamp).toLocaleString('en-US', {
+month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+});
+
+const itemsHtml = sale.items.map(item => `
+<div class="flex items-center justify-between py-2 border-b border-parchment-200 text-sm">
+<div>
+<span class="font-bold text-smokehouse-900">${item.qty}×</span>
+<span class="text-stone-800">${escapeHtml(item.name)}</span>
+</div>
+<span class="font-semibold text-smokehouse-900">${formatMoney(item.qty * item.price)}</span>
+</div>
+`).join('');
+
+const settleButtons = sale.status === 'unpaid' ? `
+<div class="space-y-1.5 pt-1">
+<span class="block text-[11px] font-bold uppercase tracking-wider text-stone-500">Settle Tab Via:</span>
+<div class="grid grid-cols-3 gap-2">
+<button onclick="markSalePaid('${sale.id}', 'Venmo')" class="py-2.5 rounded-xl bg-emerald-700 text-white text-xs font-bold">Venmo</button>
+<button onclick="markSalePaid('${sale.id}', 'Cash')" class="py-2.5 rounded-xl bg-emerald-700 text-white text-xs font-bold">Cash</button>
+<button onclick="markSalePaid('${sale.id}', 'Zelle')" class="py-2.5 rounded-xl bg-emerald-700 text-white text-xs font-bold">Zelle</button>
+</div>
+</div>
+` : '';
+
+document.getElementById('order-modal-body').innerHTML = `
+<div class="space-y-1">${itemsHtml}</div>
+<div class="flex items-center justify-between pt-1">
+<span class="text-xs font-bold uppercase tracking-wider text-stone-500">Total (${sale.status === 'paid' ? 'Paid via ' + sale.method : 'Unpaid Tab'})</span>
+<span class="font-serif text-xl font-bold text-smokehouse-900">${formatMoney(sale.total)}</span>
+</div>
+${sale.note ? `<p class="text-xs bg-white p-3 rounded-xl border border-parchment-200 text-stone-600">Note: ${escapeHtml(sale.note)}</p>` : ''}
+${settleButtons}
+<div class="pt-3 border-t border-parchment-200 flex items-center justify-between gap-2">
+<button onclick="voidOrder('${sale.id}', true)"
+class="flex-1 py-2.5 px-3 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs transition">
+Void & Restore Stock
+</button>
+<button onclick="voidOrder('${sale.id}', false)"
+class="py-2.5 px-3 rounded-xl bg-red-100 hover:bg-red-200 text-red-800 font-bold text-xs transition">
+Delete Only
+</button>
+</div>
+`;
+
+document.getElementById('order-modal').classList.remove('hidden');
+}
+
+function closeOrderModal() {
+const modal = document.getElementById('order-modal');
+if (modal) modal.classList.add('hidden');
+}
+
+function ensureOrderModalExists() {
+if (document.getElementById('order-modal')) return;
+const modalHtml = `
+<div id="order-modal" class="fixed inset-0 z-50 hidden bg-smokehouse-950/75 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+<div class="bg-parchment-50 w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-parchment-300 overflow-hidden max-h-[90vh] flex flex-col">
+<div class="px-5 py-4 bg-smokehouse-900 text-parchment-50 flex items-center justify-between">
+<div>
+<h3 id="order-modal-buyer" class="font-serif text-lg font-bold leading-tight">Order Details</h3>
+<p id="order-modal-date" class="text-[11px] text-stone-400"></p>
+</div>
+<button onclick="closeOrderModal()" class="p-1.5 rounded-lg text-stone-400 hover:text-white">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+</svg>
+</button>
+</div>
+<div id="order-modal-body" class="p-5 space-y-3.5 overflow-y-auto"></div>
+</div>
+</div>
+`;
+document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+const _origOpenOrderModal = openOrderModal;
+openOrderModal = function(saleId) {
+ensureOrderModalExists();
+return _origOpenOrderModal(saleId);
+};
+
+function voidOrder(saleId, restoreStock) {
+const sale = appState.sales.find(s => s.id === saleId);
+if (!sale) return;
+
+if (restoreStock) {
+sale.items.forEach(item => {
+const batch = appState.inventory.find(b => b.id === item.batchId);
+if (batch) {
+batch.stock = Number(batch.stock) + Number(item.qty);
+}
+});
+}
+
+appState.sales = appState.sales.filter(s => s.id !== saleId);
+closeOrderModal();
+saveState();
+showToast(restoreStock ? 'Order voided & stock restored' : 'Order deleted');
+}
+
+// =====================================================================
+// SETTINGS, CSV EXPORT & CONFIRMATION DIALOGS
+// =====================================================================
+function openSettingsModal() {
+updateIconEnvironmentInfo(Boolean(readStorageItem(CUSTOM_ICON_KEY)));
+document.getElementById('settings-modal').classList.remove('hidden');
+}
+
+function closeSettingsModal() {
+document.getElementById('settings-modal').classList.add('hidden');
+}
+
+function exportSalesCSV() {
+const allMetrics = calculateProfitMetrics('all');
+const summaryRows = [
+['CHADDER\'S CHEESE - PROFIT SUMMARY'],
+['Gross Revenue ($)', allMetrics.grossRevenue.toFixed(2)],
+['Collected Revenue ($)', allMetrics.paidRevenue.toFixed(2)],
+['Pending Tabs ($)', allMetrics.unpaidRevenue.toFixed(2)],
+['Total Block COGS ($)', allMetrics.totalCOGS.toFixed(2)],
+['Additional Supply Expenses ($)', allMetrics.totalExpenses.toFixed(2)],
+['True Net Profit ($)', allMetrics.netProfit.toFixed(2)],
+['Net Margin (%)', `${allMetrics.netMarginPct}%`],
+[],
+['LEDGER ENTRIES'],
+['Type', 'ID', 'Date', 'Party / Category', 'Status / Method', 'Details', 'Revenue ($)', 'COGS / Expense ($)', 'Net Impact ($)', 'Note']
+];
+
+const saleRows = appState.sales.map(s => {
+const cogs = s.items.reduce((sum, i) => {
+const unitC = i.cost !== undefined ? Number(i.cost) : 0;
+return sum + (Number(i.qty) * unitC);
+}, 0);
+const net = Number(s.total) - cogs;
+return [
+'Sale',
+s.id,
+new Date(s.timestamp).toLocaleDateString(),
+`"${s.buyer.replace(/"/g, '""')}"`,
+`${s.status} (${s.method})`,
+`"${s.items.map(i => `${i.qty}x ${i.name}`).join('; ').replace(/"/g, '""')}"`,
+Number(s.total).toFixed(2),
+cogs.toFixed(2),
+net.toFixed(2),
+`"${(s.note || '').replace(/"/g, '""')}"`
+];
+});
+
+const expenseRows = (appState.expenses || []).map(e => [
+'Expense',
+e.id,
+e.date || '',
+`"${e.category}"`,
+'Paid',
+`"${e.description.replace(/"/g, '""')}"`,
+'0.00',
+Number(e.amount).toFixed(2),
+`-${Number(e.amount).toFixed(2)}`,
+''
+]);
+
+downloadCSV([...summaryRows, ...saleRows, ...expenseRows], `Chadders_Cheese_Profits_${new Date().toISOString().slice(0,10)}.csv`);
+showToast('Profit & Sales CSV downloaded!');
+}
+
+function exportInventoryCSV() {
+const headers = ['Batch ID', 'Smoke Wood', 'Cheese Variety', 'Size', 'Blocks In Stock', 'Sell Price ($)', 'Cost ($)', 'Batch Date'];
+const rows = appState.inventory.map(b => [
+b.id,
+`"${b.wood}"`,
+`"${b.variety.replace(/"/g, '""')}"`,
+`"${b.weight || ''}"`,
+b.stock,
+Number(b.price).toFixed(2),
+b.cost ? Number(b.cost).toFixed(2) : '',
+b.date || ''
+]);
+downloadCSV([headers, ...rows], `Chadders_Cheese_Inventory_${new Date().toISOString().slice(0,10)}.csv`);
+showToast('Inventory CSV downloaded!');
+}
+
+function downloadCSV(rowsArray, filename) {
+const csvContent = rowsArray.map(r => r.join(',')).join('\n');
+const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+const url = URL.createObjectURL(blob);
+const link = document.createElement('a');
+link.href = url;
+link.setAttribute('download', filename);
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+URL.revokeObjectURL(url);
+}
+
+function triggerConfirmAction(actionType) {
+const modal = document.getElementById('confirm-modal');
+const title = document.getElementById('confirm-title');
+const msg = document.getElementById('confirm-message');
+const proceedBtn = document.getElementById('confirm-proceed-btn');
+
+closeSettingsModal();
+
+if (actionType === 'resetDemo') {
+title.textContent = 'Reset to Demo Data?';
+msg.textContent = 'This will restore the sample smoked cheese batches and starter orders.';
+proceedBtn.onclick = async () => {
+appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
+appState._userModified = true;
+saleDraft.quantities = {};
+await clearStateInBrowserCache();
+await clearStateInIDB();
+clearStateInHash();
+saveState(true);
+closeConfirmModal();
+showToast('Demo data restored!');
+};
+} else if (actionType === 'clearAll') {
+title.textContent = 'Clear Sample & All Data?';
+msg.textContent = 'This will wipe all sample batches, sales, tabs, and expenses so you can start fresh.';
+proceedBtn.onclick = async () => {
+appState = { inventory: [], sales: [], expenses: [], regularBuyers: [], _userModified: true };
+saleDraft.quantities = {};
+await clearStateInBrowserCache();
+await clearStateInIDB();
+clearStateInHash();
+saveState(true);
+closeConfirmModal();
+showToast('All data cleared — ready for your first batch!');
+};
+}
+
+modal.classList.remove('hidden');
+}
+
+function closeConfirmModal() {
+document.getElementById('confirm-modal').classList.add('hidden');
+}
+
+// Basic HTML sanitizer
+function escapeHtml(str) {
+if (!str) return '';
+return String(str)
+.replace(/&/g, '&amp;')
+.replace(/</g, '&lt;')
+.replace(/>/g, '&gt;')
+.replace(/"/g, '&quot;');
+}
+
+// Master Render
+function renderAll() {
+renderKPIs();
+renderInventory();
+renderSaleTab();
+renderHistory();
+renderProfitsTab();
+}
+
+// Initialize App on Load
+document.addEventListener('DOMContentLoaded', async () => {
+if (window.self !== window.top) {
+setSaveBadge('Saved (Session)', true);
+}
+await applyAppIcon();
+renderAll();
+await hydrateStateFromSecondaryStoresIfNeeded();
+});
+
+// Ensure latest state is flushed before page unload/refresh
+window.addEventListener('pagehide', () => {
+appState._updatedAt = Date.now();
+const serialized = JSON.stringify(appState);
+writeStorageItem(STORAGE_KEY, serialized);
+writeWindowNameState(serialized);
+writeStateToHash(serialized);
+writeStateToIDB(serialized);
+});
+</script>
+</body>
+</html>
